@@ -119,7 +119,7 @@ namespace Pokemon_Showdown_Bot
             login.Click();
 
             IJavaScriptExecutor js = webDriver as IJavaScriptExecutor;
-            js.ExecuteScript("window.app.tryJoinRoom(\"Deutsche\");");
+            js.ExecuteScript("window.app.tryJoinRoom(\"Pokefans\");");
 
             Thread.Sleep(100);
 
@@ -632,6 +632,7 @@ namespace Pokemon_Showdown_Bot
             string type2 = null;
             if (searchtext.Contains("class=\"b\""))
             {
+                searchtext = searchtext.Substring(searchtext.IndexOf("<img") + 4);
                 searchtext = searchtext.Substring(searchtext.IndexOf("<img") + 4);
                 type2 = searchtext.Substring(searchtext.IndexOf("alt") + 5, searchtext.IndexOf("class") - 2 - (searchtext.IndexOf("alt") + 5));
             }
