@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="Calculator.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Debug.cs" />
     <Compile Include="Fighter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

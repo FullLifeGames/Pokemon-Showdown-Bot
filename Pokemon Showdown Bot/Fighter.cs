@@ -44,7 +44,7 @@ namespace Pokemon_Showdown_Bot
                     Thread.Sleep(50);
                 }
 
-                Console.WriteLine("Battle found!");
+                Debug.WriteLine("Battle found!");
                 battle();
 
                 exitBattle();
@@ -121,7 +121,7 @@ namespace Pokemon_Showdown_Bot
             IJavaScriptExecutor js = webDriver as IJavaScriptExecutor;
             js.ExecuteScript("window.app.tryJoinRoom(\"Pokefans\");");
 
-            Thread.Sleep(100);
+            Thread.Sleep(200);
 
             IWebElement musik = webDriver.FindElement(By.CssSelector("button.icon:nth-child(2)"));
             musik.Click();
@@ -160,37 +160,37 @@ namespace Pokemon_Showdown_Bot
 
         private void battle()
         {
-            Console.WriteLine("Picking Start Pokemon");
+            Debug.WriteLine("Picking Start Pokemon");
             pickStartPokemon();
 
-            Console.WriteLine("Wait For Opponent");
+            Debug.WriteLine("Wait For Opponent");
             while (waitingForOpponent() || skippingTurnWaiting())
             {
                 Thread.Sleep(50);
             }
 
-            Console.WriteLine("Game Start");
+            Debug.WriteLine("Game Start");
             while (checkifGameOver())
             {
                 meltPokemonWithNumbers();
-                Console.WriteLine("Check Mega Evolve Possibility");
+                Debug.WriteLine("Check Mega Evolve Possibility");
                 megaEvolveIfPossible();
-                Console.WriteLine("Make A Move");
+                Debug.WriteLine("Make A Move");
                 makeMove();
-                Console.WriteLine("Wait For Opponent");
+                Debug.WriteLine("Wait For Opponent");
                 while (waitingForOpponent() || skippingTurnWaiting())
                 {
                     Thread.Sleep(50);
                 }
                 meltPokemonWithNumbers();
                 pickPokemonifDefeated();
-                Console.WriteLine("Wait For Opponent");
+                Debug.WriteLine("Wait For Opponent");
                 while (waitingForOpponent() || skippingTurnWaiting())
                 {
                     Thread.Sleep(50);
                 }
                 pickPokemonifDefeated();
-                Console.WriteLine("Wait For Opponent");
+                Debug.WriteLine("Wait For Opponent");
                 while (waitingForOpponent() || skippingTurnWaiting())
                 {
                     Thread.Sleep(50);
@@ -388,7 +388,7 @@ namespace Pokemon_Showdown_Bot
 
         private bool skippingTurnWaiting()
         {
-            Console.WriteLine("skippingTurnWaiting");
+            Debug.WriteLine("skippingTurnWaiting");
             try
             {
                 IWebElement element = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(5) > p:nth-child(1) > button:nth-child(1)"));
@@ -703,7 +703,7 @@ namespace Pokemon_Showdown_Bot
 
         private double calcMove(string type, List<string> types, List<string> mytypes)
         {
-            Console.WriteLine("Eigener Typ: " + type.ToLower());
+            Debug.WriteLine("Eigener Typ: " + type.ToLower());
 
             double value = 1.0;
             string gegtypen = "Gegnerische Typen: ";
@@ -752,7 +752,7 @@ namespace Pokemon_Showdown_Bot
                     value = 0;
                 }
             }
-            Console.WriteLine(gegtypen);
+            Debug.WriteLine(gegtypen);
             return value;
         }
 
@@ -760,7 +760,15 @@ namespace Pokemon_Showdown_Bot
         {
             try
             {
-                IWebElement opponent = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(1)"));
+                IWebElement opponent;
+                try
+                {
+                    opponent= webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(1)"));
+                } 
+                catch(Exception)
+                {
+                    opponent = webDriver.FindElement(By.CssSelector(".foehint > div:nth-child(1)"));
+                }
                 Actions action = new Actions(webDriver);
                 action.MoveToElement(opponent).Perform();
                 IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
@@ -834,7 +842,7 @@ namespace Pokemon_Showdown_Bot
 
         private bool waitingForOpponent()
         {
-            Console.WriteLine("waitingForOpponent");
+            Debug.WriteLine("waitingForOpponent");
             try
             {
                 IWebElement waiting = webDriver.FindElement(By.CssSelector(".controls > p:nth-child(1) > em:nth-child(1)"));
@@ -909,7 +917,7 @@ namespace Pokemon_Showdown_Bot
 
         private bool checkifGameOver()
         {
-            Console.WriteLine("checkifGameOver");
+            Debug.WriteLine("checkifGameOver");
             try
             {
                 IWebElement messageBar = webDriver.FindElement(By.CssSelector(".messagebar"));
