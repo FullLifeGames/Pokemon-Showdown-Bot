@@ -19,12 +19,20 @@ namespace Pokemon_Showdown_Bot
         static void Main(string[] args)
         {
 
-            Config config = Config.loadConfig();
-            Fighter fighter = new Fighter(config);
-            Calculator calculator = new Calculator(config);
-            calculator.init(fighter);
-            fighter.setCalculator(calculator);
-            fighter.start();
+            Config config = Config.loadConfig();            
+            IFighter fighter;
+            if (config.botMethod == null || config.botMethod == "Fighter")
+            {
+                fighter = new Fighter(config);
+                Calculator calculator = new Calculator(config);
+                calculator.init(fighter);
+                fighter.setCalculator(calculator);
+            }
+            else
+            {
+                fighter = new FighterwithoutCalculator(config);
+            }                       
+            fighter.start();    
             
         }
 

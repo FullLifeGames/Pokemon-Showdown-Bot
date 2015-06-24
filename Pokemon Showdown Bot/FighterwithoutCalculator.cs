@@ -12,19 +12,20 @@ using OpenQA.Selenium.Interactions;
 
 namespace Pokemon_Showdown_Bot
 {
-    class Fighter : IFighter
+    // TODO Deprecated
+    class FighterwithoutCalculator : IFighter
     {
         #region Variablen
         private Dictionary<string, Dictionary<string, double>> Typechart;
         private bool rocksSet = false;
+        private Dictionary<string, List<string>> dictTypes;
         private Dictionary<string, int> pokemonToNumber;
         private IWebDriver webDriver;
         private Config config;
         private Calculator calculator;
-        private const double MAX_DAMAGE_SWITCH_CONST = 20;
         #endregion
 
-        public Fighter(Config config)
+        public FighterwithoutCalculator(Config config)
         {
             this.config = config;
         }
@@ -103,6 +104,7 @@ namespace Pokemon_Showdown_Bot
 
             IWebElement login = webDriver.FindElement(By.Name("login"));
             login.Click();
+
 
             IWebElement username = webDriver.FindElement(By.CssSelector("input.textbox:nth-child(1)"));
             username.SendKeys(config.user);
@@ -215,7 +217,10 @@ namespace Pokemon_Showdown_Bot
         #region Help Functions
         private void setTeam()
         {
+            dictTypes = new Dictionary<string, List<string>>();
             string pokemon = "";
+            string[] typelines = config.teamtypes.Split('\n');
+            int countline = 0;
             foreach (string line in config.team.Split('\n'))
             {
                 if (line.Contains("(M") || line.Contains("(F"))
@@ -225,6 +230,16 @@ namespace Pokemon_Showdown_Bot
                 else if (line.Contains("@"))
                 {
                     pokemon = line.Substring(0, line.IndexOf("@")).Trim();
+                }
+                else if (line.Trim().Equals(""))
+                {
+                    dictTypes.Add(pokemon, new List<string>());
+                    while (!typelines[countline].Trim().Equals(""))
+                    {
+                        dictTypes[pokemon].Add(typelines[countline].Trim());
+                        countline++;
+                    }
+                    countline++;
                 }
             }
         }
@@ -399,7 +414,6 @@ namespace Pokemon_Showdown_Bot
             { }
         }
 
-        //TODO Überarbeiten mit Calculator Pick
         private void pickPokemonifDefeated()
         {
             try
@@ -409,7 +423,7 @@ namespace Pokemon_Showdown_Bot
                 {
                     Random r = new Random();
                     bool exception = true;
-                    List<int> bestPokemon = getBestPossiblePokemonForSwitch();
+                    List<int> bestPokemon = getBestPossiblePokemon();
                     while (exception)
                     {
                         try
@@ -449,118 +463,16 @@ namespace Pokemon_Showdown_Bot
             }
         }
 
-        //TODO Überarbeiten mit Calculator Pick, Pokemon was schneller ist und Pokemon was am meisten Schaden macht
-        private List<int> getBestPossiblePokemonForSwitch()
+        private List<int> getBestPossiblePokemon()
         {
-            string oppsearchtext = null;
-            string opp = null;
-            double opphealth = -1;
-            string oppitem = null;
-            try
-            {
-                oppsearchtext = getOpponentsSearchText();
-                opp = getName(oppsearchtext);
-                opphealth = getHealth(oppsearchtext);
-                oppitem = getItem(oppsearchtext);
-            }
-            catch (Exception)
-            {
-            }
-            Dictionary<string, double> mypokemon = getMyPokemon();
-            // Double Down
-            if (opp == null)
-            {
-                // TODO Bisher mit random implementiert, aber erweiterbar mit der selben Methode, die auch im Start implementiert werden soll
-                List<int> numbers = new List<int>();
-                for (int i = 1; i <= 6; i++)
-                {
-                    numbers.Add(i);
-                }
-                List<int> ret = new List<int>();
-                Random r = new Random();
-                for (int i = 0; i < 6; i++)
-                {
-                    int next = r.Next(numbers.Count);
-                    ret.Add(numbers[next]);
-                    numbers.RemoveAt(next);
-                }
-                return ret;
-            }
-            else
+            List<string> types = getOpponentsType();
+            types = getOpponentsType();
+            if (types != null)
             {
                 Dictionary<string, double> strength = new Dictionary<string, double>();
-                foreach (string pokemon in pokemonToNumber.Keys)
+                foreach (KeyValuePair<string, List<string>> kv in dictTypes)
                 {
-                    Dictionary<string, string>[] damages = calculator.calculate(pokemon, opp, oppitem);
-                    Dictionary<string, string> mydamage = damages[0];
-                    Dictionary<string, string> oppdamage = damages[1];
-                    int[] speedStats = calculator.getSpeedStats(pokemon, opp);
-
-                    string bestmove = "";
-                    double maxdamage = -1;
-                    double mindamage = -1;
-                    foreach (KeyValuePair<string, string> damage in mydamage)
-                    {
-                        double tempdamage = double.Parse(damage.Value.Substring(damage.Value.IndexOf("-") + 1, damage.Value.IndexOf("%") - (damage.Value.IndexOf("-") + 1)));
-                        if (tempdamage > maxdamage)
-                        {
-                            maxdamage = tempdamage;
-                            mindamage = double.Parse(damage.Value.Substring(0, damage.Value.IndexOf("-")));
-                            bestmove = damage.Key;
-                        }
-                    }
-
-                    string oppbestmove = "";
-                    double oppmaxdamage = -1;
-                    double oppmindamage = -1;
-                    foreach (KeyValuePair<string, string> damage in oppdamage)
-                    {
-                        double tempdamage = double.Parse(damage.Value.Substring(damage.Value.IndexOf("-") + 1, damage.Value.IndexOf("%") - (damage.Value.IndexOf("-") + 1)));
-                        if (tempdamage > maxdamage)
-                        {
-                            oppmaxdamage = tempdamage;
-                            oppmindamage = double.Parse(damage.Value.Substring(0, damage.Value.IndexOf("-")));
-                            oppbestmove = damage.Key;
-                        }
-                    }
-                    try
-                    {
-                        if (speedStats[(int)Position.ME] > speedStats[(int)Position.OPPONENT] && (mypokemon[pokemon] - mittelwert(oppmaxdamage, oppmindamage)) > 0 && (opphealth - mittelwert(maxdamage, mindamage)) < 0)
-                        {
-                            strength.Add(pokemon, 7);
-                        }
-                        else if (speedStats[(int)Position.ME] > speedStats[(int)Position.OPPONENT] && (mypokemon[pokemon] - mittelwert(oppmaxdamage, oppmindamage)) <= 0 && (opphealth - mittelwert(maxdamage, mindamage)) < 0)
-                        {
-                            strength.Add(pokemon, 6);
-                        }
-                        else if (speedStats[(int)Position.ME] <= speedStats[(int)Position.OPPONENT] && (mypokemon[pokemon] - mittelwert(oppmaxdamage, oppmindamage)) > 0 && (opphealth - mittelwert(maxdamage, mindamage)) < 0)
-                        {
-                            strength.Add(pokemon, 5);
-                        }
-                        else if (speedStats[(int)Position.ME] > speedStats[(int)Position.OPPONENT] && myPokemonWins(mypokemon[pokemon], maxdamage, mindamage, opphealth, oppmaxdamage, oppmindamage, speedStats[(int)Position.ME] > speedStats[(int)Position.OPPONENT]))
-                        {
-                            strength.Add(pokemon, 4);
-                        }
-                        else if (speedStats[(int)Position.ME] <= speedStats[(int)Position.OPPONENT] && myPokemonWins(mypokemon[pokemon], maxdamage, mindamage, opphealth, oppmaxdamage, oppmindamage, speedStats[(int)Position.ME] <= speedStats[(int)Position.OPPONENT]))
-                        {
-                            strength.Add(pokemon, 3);
-                        }
-                        else if (speedStats[(int)Position.ME] > speedStats[(int)Position.OPPONENT] && !myPokemonWins(mypokemon[pokemon], maxdamage, mindamage, opphealth, oppmaxdamage, oppmindamage, speedStats[(int)Position.ME] > speedStats[(int)Position.OPPONENT]))
-                        {
-                            strength.Add(pokemon, 2);
-                        }
-                        else if (speedStats[(int)Position.ME] <= speedStats[(int)Position.OPPONENT] && !myPokemonWins(mypokemon[pokemon], maxdamage, mindamage, opphealth, oppmaxdamage, oppmindamage, speedStats[(int)Position.ME] <= speedStats[(int)Position.OPPONENT]))
-                        {
-                            strength.Add(pokemon, 1);
-                        }
-                        else
-                        {
-                            strength.Add(pokemon, 0);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
+                    strength.Add(kv.Key, calcMaxStrength(kv.Value, types));
                 }
                 List<KeyValuePair<string, double>> myList = strength.ToList();
 
@@ -576,79 +488,135 @@ namespace Pokemon_Showdown_Bot
 
                 return ret;
             }
-            
-        }
-
-        private bool myPokemonWins(double health, double maxdamage, double mindamage, double opphealth, double oppmaxdamage, double oppmindamage, bool faster)
-        {
-            double damage = mittelwert(maxdamage, mindamage);
-            double oppdamage = mittelwert(oppmaxdamage, oppmindamage);
-            double temphealth = health;
-            double tempopphealth = opphealth;
-            while (temphealth > 0 && tempopphealth > 0)
+            else
             {
-                temphealth -= oppdamage;
-                tempopphealth -= damage;
-            }
-            if (temphealth <= 0 && tempopphealth <= 0)
-            {
-                return faster;
-            }
-            else if (temphealth <= 0)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private Dictionary<string, double> getMyPokemon()
-        {
-            Dictionary<string, double> ret = new Dictionary<string, double>();
-            Actions action = new Actions(webDriver);
-            for (int i = 1; i <= 6; i++)
-            {
-                IWebElement pokemon = webDriver.FindElement(By.CssSelector(".switchmenu > button:nth-child(" + i + ")"));
-                if (pokemon.GetAttribute("class") != "disabled")
+                List<int> numbers = new List<int>();
+                for (int i = 1; i <= 6; i++)
                 {
-                    action.MoveToElement(pokemon).Perform();
+                    numbers.Add(i);
+                }
+                List<int> ret = new List<int>();
+                Random r = new Random();
+                for (int i = 0; i < 6; i++)
+                {
+                    int next = r.Next(numbers.Count);
+                    ret.Add(numbers[next]);
+                    numbers.RemoveAt(next);
+                }
+                return ret;
+            }
+        }
 
-                    IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
-                    string searchtext = tooltip.GetAttribute("innerHTML");
-                    string name = getName(searchtext);
-                    if (name.Contains("-Mega"))
+        private double calcMaxStrength(List<string> p, List<string> types)
+        {
+            double maxStrength = 0;
+            foreach (string type in p)
+            {
+                double value = 1.0;
+                foreach (string opptype in types)
+                {
+                    try
                     {
-                        name = name.Substring(0, name.IndexOf("-Mega"));
+                        Dictionary<string, double> Charttypes = Typechart[opptype.ToLower()];
+
+                        if (Charttypes.ContainsKey(type.ToLower()))
+                        {
+                            value = value * Charttypes[type.ToLower()];
+                        }
                     }
-                    double health = getHealth(searchtext);
-                    ret.Add(name.Trim(), health);
+                    catch (Exception)
+                    {
+
+                    }
+                    if (opptype.ToLower().Contains("levitate") && type.ToLower().Equals("ground"))
+                    {
+                        value = 0;
+                    }
+                    if (opptype.ToLower().Contains("dry skin") && type.ToLower().Equals("water"))
+                    {
+                        value = 0;
+                    }
+                    if (opptype.ToLower().Contains("flash fire") && type.ToLower().Equals("fire"))
+                    {
+                        value = 0;
+                    }
+                    if (opptype.ToLower().Contains("water absorb") && type.ToLower().Equals("water"))
+                    {
+                        value = 0;
+                    }
+                    if (opptype.ToLower().Contains("volt absorb") && type.ToLower().Equals("electric"))
+                    {
+                        value = 0;
+                    }
+                    if (opptype.ToLower().Contains("lightning rod") && type.ToLower().Equals("electric"))
+                    {
+                        value = 0;
+                    }
+                }
+                if (maxStrength < value)
+                {
+                    maxStrength = value;
                 }
             }
-            return ret;
+            return maxStrength;
         }
 
         private void makeMove()
         {
             try
             {
-                string oppsearchtext = getOpponentsSearchText();
-                string opp = getName(oppsearchtext);
-                double opphealth = getHealth(oppsearchtext);
-                string oppitem = getItem(oppsearchtext);
+                List<string> types = getOpponentsType();
+                List<string> mytypes = getMyType();
 
-                string mysearchtext = getMySearchText();
-                string me = getName(mysearchtext);
+                IWebElement allMoves = webDriver.FindElement(By.CssSelector(".movemenu"));
+                ReadOnlyCollection<IWebElement> moves = allMoves.FindElements(By.Name("chooseMove"));
 
-                Move move = calcBestMove(me, opp, oppitem);                     // Wenn der Mittelwert von min und max damage nicht killt => wechsel
-                if (move.maxDamage < MAX_DAMAGE_SWITCH_CONST && ((opphealth - mittelwert(move.maxDamage, move.minDamage)) > 0))
+                IWebElement selectedMove = null;
+                List<IWebElement> possibleMoves = new List<IWebElement>();
+                double superValue = -1;
+                foreach (IWebElement move in moves)
+                {
+                    if (!rocksSet && move.GetAttribute("innerHTML").Contains("Stealth Rock"))
+                    {
+                        superValue = 1;
+                        selectedMove = move;
+                        rocksSet = true;
+                        break;
+                    }
+                    else if (move.GetAttribute("innerHTML").Contains("Stealth Rock"))
+                    {
+                        continue;
+                    }
+
+                    string type = move.GetAttribute("class").Substring(5);
+                    double value = calcMove(type, types, mytypes);
+                    if (value == superValue)
+                    {
+                        possibleMoves.Add(move);
+                    }
+                    if (value > superValue)
+                    {
+                        selectedMove = move;
+                        superValue = value;
+                        possibleMoves.Clear();
+                        possibleMoves.Add(move);
+                    }
+
+                }
+                if (possibleMoves.Count > 1)
+                {
+                    selectedMove = possibleMoves[new Random().Next(possibleMoves.Count)];
+                }
+                if (superValue < 1)
                 {
                     if (!tryToSwitch())
                     {
-                        move.moveClick.Click();
+                        selectedMove.Click();
                     }
                 }
                 else
                 {
-                    move.moveClick.Click();
+                    selectedMove.Click();
                 }
             }
             catch (Exception)
@@ -657,61 +625,25 @@ namespace Pokemon_Showdown_Bot
             }
         }
 
-        private Move calcBestMove(string me, string opp, string oppitem)
+        private List<string> getMyType()
         {
-            Dictionary<string, string>[] damages = calculator.calculate(me, opp, oppitem);
-            Dictionary<string, string> mydamage = damages[0];
-            Dictionary<string, string> oppdamage = damages[1];
-            String[] types = calculator.getMoveTypeAndOpponentsType(me, opp);
-            IWebElement allMoves = webDriver.FindElement(By.CssSelector(".movemenu"));
-            ReadOnlyCollection<IWebElement> moves = allMoves.FindElements(By.Name("chooseMove"));
-            bool canStealthRock = calculator.canStealthRock(me, opp);
-            
-            List<Move> movesList = new List<Move>();
-            foreach (KeyValuePair<string, string> damage in mydamage)
+            IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
+            string searchtext = tooltip.GetAttribute("innerHTML");
+            string type1 = searchtext.Substring(searchtext.IndexOf("alt") + 5, searchtext.IndexOf("height") - 2 - (searchtext.IndexOf("alt") + 5));
+            string type2 = null;
+            if (searchtext.Contains("class=\"b\""))
             {
-                double tempdamage = double.Parse(damage.Value.Substring(damage.Value.IndexOf("-") + 1, damage.Value.IndexOf("%") - (damage.Value.IndexOf("-") + 1)));
-                Move m = new Move();
-                m.maxDamage = tempdamage;
-                m.minDamage = double.Parse(damage.Value.Substring(0, damage.Value.IndexOf("-")));
-                m.moveName = damage.Key;
-                movesList.Add(m);
+                searchtext = searchtext.Substring(searchtext.IndexOf("<img") + 4);
+                searchtext = searchtext.Substring(searchtext.IndexOf("<img") + 4);
+                type2 = searchtext.Substring(searchtext.IndexOf("alt") + 5, searchtext.IndexOf("class") - 2 - (searchtext.IndexOf("alt") + 5));
             }
-            movesList.OrderBy(move => move.maxDamage);
-            double maxdamage = -1;
-            double mindamage = -1;
-            IWebElement selectedMove = null;
-            foreach (IWebElement move in moves)
+            List<string> types = new List<string>();
+            types.Add(type1);
+            if (type2 != null)
             {
-                if (!rocksSet && canStealthRock && move.GetAttribute("innerHTML").Contains("Stealth Rock"))
-                {
-                    maxdamage = 21;
-                    selectedMove = move;
-                    rocksSet = true;
-                    break;
-                }
-                else if (move.GetAttribute("innerHTML").Contains("Stealth Rock"))
-                {
-                    continue;
-                }                
-                foreach (Move m in movesList)
-                {
-                    if (move.GetAttribute("innerHTML").Contains(m.moveName))
-                    {
-                        if (maxdamage < m.maxDamage)
-                        {
-                            selectedMove = move;
-                            maxdamage = m.maxDamage;
-                            mindamage = m.minDamage;
-                        }
-                    }
-                }
+                types.Add(type2);
             }
-            Move ret = new Move();
-            ret.moveClick = selectedMove;
-            ret.maxDamage = maxdamage;
-            ret.minDamage = mindamage;
-            return ret;
+            return types;
         }
 
         private bool tryToSwitch()
@@ -722,7 +654,7 @@ namespace Pokemon_Showdown_Bot
                 bool exception = true;
                 int count = 0;
                 const int maxtrys = 100;
-                List<int> bestPokemon = getBestPossiblePokemonForSwitch();
+                List<int> bestPokemon = getBestPossiblePokemon();
                 while (exception)
                 {
                     if (count > maxtrys)
@@ -770,71 +702,143 @@ namespace Pokemon_Showdown_Bot
             return true;
         }
 
-        private string getMySearchText()
+        private double calcMove(string type, List<string> types, List<string> mytypes)
         {
-            Actions action = new Actions(webDriver);
-            IWebElement me = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(2)"));
-            action.MoveToElement(me).Perform();
+            Debug.WriteLine("Eigener Typ: " + type.ToLower());
 
-            IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
-            string searchtext = tooltip.GetAttribute("innerHTML");
-            return searchtext;
+            double value = 1.0;
+            string gegtypen = "Gegnerische Typen: ";
+            foreach (string opptype in types)
+            {
+                try
+                {
+                    Dictionary<string, double> Charttypes = Typechart[opptype.ToLower()];
+                    gegtypen += opptype.ToLower();
+                    // Stab Prio
+                    if (mytypes.Contains(type))
+                    {
+                        value = value * 1.1;
+                    }
+                    if (Charttypes.ContainsKey(type.ToLower()))
+                    {
+                        value = value * Charttypes[type.ToLower()];
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+                if (opptype.ToLower().Contains("levitate") && type.ToLower().Equals("ground"))
+                {
+                    value = 0;
+                }
+                if (opptype.ToLower().Contains("dry skin") && type.ToLower().Equals("water"))
+                {
+                    value = 0;
+                }
+                if (opptype.ToLower().Contains("flash fire") && type.ToLower().Equals("fire"))
+                {
+                    value = 0;
+                }
+                if (opptype.ToLower().Contains("water absorb") && type.ToLower().Equals("water"))
+                {
+                    value = 0;
+                }
+                if (opptype.ToLower().Contains("volt absorb") && type.ToLower().Equals("electric"))
+                {
+                    value = 0;
+                }
+                if (opptype.ToLower().Contains("lightning rod") && type.ToLower().Equals("electric"))
+                {
+                    value = 0;
+                }
+            }
+            Debug.WriteLine(gegtypen);
+            return value;
         }
-        
-        private string getOpponentsSearchText()
+
+        private List<string> getOpponentsType()
         {
-            IWebElement opponent;
             try
             {
-                opponent = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(1)"));
+                IWebElement opponent;
+                try
+                {
+                    opponent= webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(1)"));
+                } 
+                catch(Exception)
+                {
+                    opponent = webDriver.FindElement(By.CssSelector(".foehint > div:nth-child(1)"));
+                }
+                Actions action = new Actions(webDriver);
+                action.MoveToElement(opponent).Perform();
+                IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
+
+                string searchtext = tooltip.GetAttribute("innerHTML");
+                searchtext = searchtext.Substring(searchtext.IndexOf("<img") + 4);
+                string type1 = searchtext.Substring(searchtext.IndexOf("alt") + 5, searchtext.IndexOf("height") - 2 - (searchtext.IndexOf("alt") + 5));
+                string type2 = null;
+
+                if (searchtext.Contains("class=\"b\""))
+                {
+                    searchtext = searchtext.Substring(searchtext.IndexOf("<img") + 4);
+                    type2 = searchtext.Substring(searchtext.IndexOf("alt") + 5, searchtext.IndexOf("class") - 2 - (searchtext.IndexOf("alt") + 5));
+                }
+                string ability = "";
+                if (searchtext.Contains("Ability:"))
+                {
+                    ability = searchtext.Substring(searchtext.IndexOf("Ability:"));
+                    ability = ability.Substring(ability.IndexOf(":") + 1, ability.IndexOf("</") - (ability.IndexOf(":") + 1)).Trim();
+                }
+                else
+                {
+                    ability = searchtext.Substring(searchtext.IndexOf("abilities:"));
+                    ability = ability.Substring(ability.IndexOf(":") + 1, ability.IndexOf("</") - (ability.IndexOf(":") + 1)).Trim();
+                }
+
+                List<string> types = new List<string>();
+                types.Add(type1);
+                if (type2 != null)
+                {
+                    types.Add(type2);
+                }
+                if (ability.ToLower().Contains("levitate"))
+                {
+                    types.Add("levitate");
+                }
+                if (ability.ToLower().Contains("dry skin"))
+                {
+                    types.Add("dry skin");
+                }
+                if (ability.ToLower().Contains("flash fire"))
+                {
+                    types.Add("flash fire");
+                }
+                if (ability.ToLower().Contains("water absorb"))
+                {
+                    types.Add("water absorb");
+                }
+                if (ability.ToLower().Contains("volt absorb"))
+                {
+                    types.Add("volt absorb");
+                }
+                if (ability.ToLower().Contains("lightning rod"))
+                {
+                    types.Add("lightning rod");
+                }
+                try
+                {
+                    IWebElement me = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(2)"));
+                    action.MoveToElement(me).Perform();
+                }
+                catch (Exception)
+                { }
+                return types;
             }
             catch (Exception)
-            {
-                opponent = webDriver.FindElement(By.CssSelector(".foehint > div:nth-child(1)"));
-            }
-            Actions action = new Actions(webDriver);
-            action.MoveToElement(opponent).Perform();
-            IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
-
-            string searchtext = tooltip.GetAttribute("innerHTML");
-            return searchtext;
-        }
-
-        private string getItem(string searchtext)
-        {
-            if (searchtext.Contains("Item:"))
-            {
-                searchtext = searchtext.Substring(searchtext.IndexOf("Item:") + 5);
-                return searchtext.Substring(0, searchtext.IndexOf("</p"));
-            }
-            else
             {
                 return null;
             }
-        }
-
-        private double getHealth(string searchtext)
-        {
-            searchtext = searchtext.Substring(searchtext.IndexOf("HP:") + 3);
-            return double.Parse((searchtext.Substring(0, searchtext.IndexOf("%"))).Replace(".",","));
-        }
-
-        private string getName(string searchtext)
-        {
-            string name;
-            try
-            {
-                name = searchtext.Substring(searchtext.IndexOf("<h2>") + 4, searchtext.IndexOf("<small style") - (searchtext.IndexOf("<h2>") + 4));
-            }
-            catch (Exception)
-            {
-                name = searchtext.Substring(searchtext.IndexOf("<h2>") + 4, searchtext.IndexOf("<br") - (searchtext.IndexOf("<h2>") + 4));
-            }
-            if (name.Contains("("))
-            {
-                name = name.Substring(name.IndexOf("(") + 1, name.IndexOf(")") - (name.IndexOf("(") + 1));
-            }
-            return name;
         }
 
         private bool waitingForOpponent()
@@ -882,7 +886,6 @@ namespace Pokemon_Showdown_Bot
             }
         }
 
-        // TODO Intelligenter Lead
         private int pickLeadPokemon()
         {
             if (!pokemonToNumber.ContainsKey(config.leadPokemon))
@@ -933,11 +936,6 @@ namespace Pokemon_Showdown_Bot
         public void setCalculator(Calculator calculator)
         {
             this.calculator = calculator;
-        }
-
-        private double mittelwert(double a, double b)
-        {
-            return (a + b) / 2;
         }
 
     }

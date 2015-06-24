@@ -59,6 +59,10 @@
     <Compile Include="Config.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Fighter.cs" />
+    <Compile Include="FighterwithoutCalculator.cs" />
+    <Compile Include="IFighter.cs" />
+    <Compile Include="Move.cs" />
+    <Compile Include="Position.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

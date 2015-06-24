@@ -13,8 +13,10 @@ namespace Pokemon_Showdown_Bot
         public string user;
         public string password;
         public string team;
+        // TODO Deprecated
         public string teamtypes;
         public string leadPokemon;
+        public string botMethod = null;
 
         public static Config loadConfig()
         {
