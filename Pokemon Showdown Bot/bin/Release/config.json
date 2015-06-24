@@ -1,6 +1,6 @@
 {
-	"user":"exampleUser",
-	"password":"examplePassword",
+	"user":"The Port",
+	"password":"FLG_Bot_Password",
 	"team":"Metagross @ Metagrossite
 Ability: Clear Body
 EVs: 252 Atk / 4 Def / 252 Spe
@@ -56,6 +56,34 @@ Jolly Nature
 - Fire Blast
 - Earthquake
 - Outrage",
+	"teamtypes":"Steel
+Psychic
+Ice
+Fighting
+
+Ice
+Water
+Water
+Fighting
+
+Fighting
+Psychic
+Electric
+Ice
+
+Ground
+Rock
+Bug
+Fighting
+
+Dark
+Dark
+Fighting
+Steel
+
+Normal
+Fire
+Ground
+Dragon",
 	"leadPokemon":"Garchomp"
-	"botMethod":"Fighter"
 }

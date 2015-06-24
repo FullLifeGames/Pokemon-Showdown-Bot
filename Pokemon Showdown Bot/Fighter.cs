@@ -162,7 +162,6 @@ namespace Pokemon_Showdown_Bot
             Debug.WriteLine("Picking Start Pokemon");
             pickStartPokemon();
 
-            Debug.WriteLine("Wait For Opponent");
             while (waitingForOpponent() || skippingTurnWaiting())
             {
                 Thread.Sleep(50);
@@ -176,20 +175,17 @@ namespace Pokemon_Showdown_Bot
                 megaEvolveIfPossible();
                 Debug.WriteLine("Make A Move");
                 makeMove();
-                Debug.WriteLine("Wait For Opponent");
                 while (waitingForOpponent() || skippingTurnWaiting())
                 {
                     Thread.Sleep(50);
                 }
                 meltPokemonWithNumbers();
                 pickPokemonifDefeated();
-                Debug.WriteLine("Wait For Opponent");
                 while (waitingForOpponent() || skippingTurnWaiting())
                 {
                     Thread.Sleep(50);
                 }
                 pickPokemonifDefeated();
-                Debug.WriteLine("Wait For Opponent");
                 while (waitingForOpponent() || skippingTurnWaiting())
                 {
                     Thread.Sleep(50);
