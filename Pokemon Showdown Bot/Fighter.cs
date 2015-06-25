@@ -22,6 +22,7 @@ namespace Pokemon_Showdown_Bot
         private Config config;
         private Calculator calculator;
         private const double MAX_DAMAGE_SWITCH_CONST = 20;
+        private bool running = true;
         #endregion
 
         public Fighter(Config config)
@@ -33,9 +34,8 @@ namespace Pokemon_Showdown_Bot
         {
             setTypeChart();
             setTeam();
-            webDriver = new FirefoxDriver(new FirefoxBinary("C:\\Program Files (x86)\\Mozilla Firefox\\Firefox.exe"), new FirefoxProfile());
+            webDriver = new FirefoxDriver();
             init();
-            bool running = true;
             while (running)
             {
                 rocksSet = false;
@@ -49,6 +49,9 @@ namespace Pokemon_Showdown_Bot
 
                 exitBattle();
             }
+
+            calculator.exit();
+            webDriver.Close();
         }
 
         private void init()
@@ -168,7 +171,7 @@ namespace Pokemon_Showdown_Bot
             }
 
             Debug.WriteLine("Game Start");
-            while (checkifGameOver())
+            while (checkifGameOver() && running)
             {
                 meltPokemonWithNumbers();
                 Debug.WriteLine("Check Mega Evolve Possibility");
@@ -935,6 +938,9 @@ namespace Pokemon_Showdown_Bot
         {
             return (a + b) / 2;
         }
-
+        public void stop()
+        {
+            running = false;
+        }
     }
 }

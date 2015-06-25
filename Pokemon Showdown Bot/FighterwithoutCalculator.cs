@@ -23,6 +23,7 @@ namespace Pokemon_Showdown_Bot
         private IWebDriver webDriver;
         private Config config;
         private Calculator calculator;
+        private bool running = true;
         #endregion
 
         public FighterwithoutCalculator(Config config)
@@ -34,9 +35,8 @@ namespace Pokemon_Showdown_Bot
         {
             setTypeChart();
             setTeam();
-            webDriver = new FirefoxDriver(new FirefoxBinary("C:\\Program Files (x86)\\Mozilla Firefox\\Firefox.exe"), new FirefoxProfile());
+            webDriver = new FirefoxDriver();
             init();
-            bool running = true;
             while (running)
             {
                 rocksSet = false;
@@ -170,7 +170,7 @@ namespace Pokemon_Showdown_Bot
             }
 
             Debug.WriteLine("Game Start");
-            while (checkifGameOver())
+            while (checkifGameOver() && running)
             {
                 meltPokemonWithNumbers();
                 Debug.WriteLine("Check Mega Evolve Possibility");
@@ -933,6 +933,9 @@ namespace Pokemon_Showdown_Bot
         {
             this.calculator = calculator;
         }
-
+        public void stop()
+        {
+            running = false;
+        }
     }
 }

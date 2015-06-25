@@ -31,9 +31,38 @@ namespace Pokemon_Showdown_Bot
             else
             {
                 fighter = new FighterwithoutCalculator(config);
-            }                       
-            fighter.start();    
-            
+            }
+            Thread runThread = new Thread(fighter.start);
+
+            runThread.Start();
+
+            Debug.WriteLine("Commands are: \n\"stop\": for stopping the bot");
+
+            string command = Console.ReadLine();
+
+            while (command != "stop")
+            {
+                command = Console.ReadLine();
+                if (command == "dummy")
+                {
+
+                }
+                else if (command == "stop")
+                {
+                    Debug.WriteLine("Stop will be initiated!");
+                }
+                else
+                {
+                    Console.WriteLine("Command not recognized!");
+                }           
+            }
+
+            fighter.stop();
+
+            runThread.Join();
+
+            Debug.WriteLine("Bot stopped!");
+
         }
 
     }

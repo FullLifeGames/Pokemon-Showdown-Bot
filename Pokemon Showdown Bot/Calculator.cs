@@ -301,5 +301,10 @@ namespace Pokemon_Showdown_Bot
 
             return new int[] { mySpeed, oppSpeed };
         }
+
+        public void exit()
+        {
+            calculator.Close();
+        }
     }
 }

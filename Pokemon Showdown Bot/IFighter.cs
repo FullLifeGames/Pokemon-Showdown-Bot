@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pokemon_Showdown_Bot
@@ -10,5 +11,7 @@ namespace Pokemon_Showdown_Bot
     {
         void setCalculator(Calculator calculator);
         void start();
+        void stop();
+
     }
 }
