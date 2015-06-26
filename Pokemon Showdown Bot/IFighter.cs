@@ -12,6 +12,6 @@ namespace Pokemon_Showdown_Bot
         void setCalculator(Calculator calculator);
         void start();
         void stop();
-
+        void addQueue(string p);
     }
 }

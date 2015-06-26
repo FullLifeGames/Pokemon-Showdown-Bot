@@ -9,6 +9,7 @@ using System.Threading;
 using OpenQA.Selenium;
 using System.Collections.ObjectModel;
 using OpenQA.Selenium.Interactions;
+using System.Collections.Concurrent;
 
 namespace Pokemon_Showdown_Bot
 {
@@ -23,11 +24,13 @@ namespace Pokemon_Showdown_Bot
         private Calculator calculator;
         private const double MAX_DAMAGE_SWITCH_CONST = 20;
         private bool running = true;
+        private ConcurrentQueue<string> messageQueue;
         #endregion
 
         public Fighter(Config config)
         {
             this.config = config;
+            messageQueue = new ConcurrentQueue<string>();
         }
 
         public void start()
@@ -165,10 +168,7 @@ namespace Pokemon_Showdown_Bot
             Debug.WriteLine("Picking Start Pokemon");
             pickStartPokemon();
 
-            while (waitingForOpponent() || skippingTurnWaiting())
-            {
-                Thread.Sleep(50);
-            }
+            wait();
 
             Debug.WriteLine("Game Start");
             while (checkifGameOver() && running)
@@ -178,23 +178,43 @@ namespace Pokemon_Showdown_Bot
                 megaEvolveIfPossible();
                 Debug.WriteLine("Make A Move");
                 makeMove();
-                while (waitingForOpponent() || skippingTurnWaiting())
-                {
-                    Thread.Sleep(50);
-                }
+
+                wait();
+
                 meltPokemonWithNumbers();
                 pickPokemonifDefeated();
-                while (waitingForOpponent() || skippingTurnWaiting())
-                {
-                    Thread.Sleep(50);
-                }
+
+                wait();
+
                 pickPokemonifDefeated();
-                while (waitingForOpponent() || skippingTurnWaiting())
-                {
-                    Thread.Sleep(50);
-                }
+
+                wait();
+
             }
 
+        }
+
+        private void wait()
+        {
+            while (waitingForOpponent() || skippingTurnWaiting())
+            {
+                writeText();
+                Thread.Sleep(50);
+            }
+        }
+
+        //TODO Not tested yet
+        private void writeText()
+        {
+            while (messageQueue.Count != 0)
+            {
+                string s = null;
+                while(messageQueue.TryDequeue(out s))
+                {
+                    Thread.Sleep(10);
+                }
+                webDriver.FindElement(By.CssSelector(".battle-log-add > form:nth-child(1) > textarea:nth-child(3)")).SendKeys(s + (char)13);
+            }
         }
 
         private void exitBattle()
@@ -941,6 +961,10 @@ namespace Pokemon_Showdown_Bot
         public void stop()
         {
             running = false;
+        }
+        public void addQueue(string message)
+        {
+            messageQueue.Enqueue(message);
         }
     }
 }

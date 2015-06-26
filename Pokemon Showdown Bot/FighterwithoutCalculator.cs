@@ -937,5 +937,10 @@ namespace Pokemon_Showdown_Bot
         {
             running = false;
         }
+        // No Support for FighterwithoutCalculator yet
+        void addQueue(string p)
+        {
+            
+        }
     }
 }

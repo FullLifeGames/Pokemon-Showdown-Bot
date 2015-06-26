@@ -43,9 +43,13 @@ namespace Pokemon_Showdown_Bot
             while (command != "stop")
             {
                 command = Console.ReadLine();
-                if (command == "dummy")
+                if (command.Contains("write:"))
                 {
-
+                    fighter.addQueue(command.Substring(6).Trim());
+                }
+                else if (command == "forfeit")
+                {
+                    fighter.addQueue("/forfeit");
                 }
                 else if (command == "stop")
                 {
