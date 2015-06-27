@@ -122,18 +122,15 @@ namespace Pokemon_Showdown_Bot
 
             login = webDriver.FindElement(By.CssSelector("p.buttonbar:nth-child(5) > button:nth-child(1)"));
             login.Click();
-
-            IJavaScriptExecutor js = webDriver as IJavaScriptExecutor;
-            js.ExecuteScript("window.app.tryJoinRoom(\"Pokefans\");");
-
-            Thread.Sleep(200);
-
+            
             IWebElement musik = webDriver.FindElement(By.CssSelector("button.icon:nth-child(2)"));
             musik.Click();
             webDriver.FindElement(By.CssSelector(".ps-popup > p:nth-child(3) > label:nth-child(1) > input:nth-child(1)")).Click();
             musik = webDriver.FindElement(By.CssSelector("button.icon:nth-child(2)"));
             musik.Click();
 
+            IJavaScriptExecutor js = webDriver as IJavaScriptExecutor;
+            js.ExecuteScript("window.app.tryJoinRoom(\"Pokefans\");");
         }
 
         private bool findABattle()
@@ -196,11 +193,26 @@ namespace Pokemon_Showdown_Bot
 
         private void wait()
         {
-            while (waitingForOpponent() || skippingTurnWaiting())
+            while (isWaiting())
             {
                 writeText();
                 Thread.Sleep(50);
             }
+        }
+
+        private bool isWaiting()
+        {
+            bool nextbool = waitingForOpponent();
+            if (!nextbool)
+            {
+                nextbool = skippingTurnWaiting();
+                Debug.WriteLine("skippingTurnWaiting");
+            }
+            else
+            {
+                Debug.WriteLine("waitingForOpponent");
+            }
+            return nextbool;
         }
 
         //TODO Not tested yet
@@ -209,7 +221,7 @@ namespace Pokemon_Showdown_Bot
             while (messageQueue.Count != 0)
             {
                 string s = null;
-                while(messageQueue.TryDequeue(out s))
+                while(!messageQueue.TryDequeue(out s))
                 {
                     Thread.Sleep(10);
                 }
@@ -393,7 +405,6 @@ namespace Pokemon_Showdown_Bot
 
         private bool skippingTurnWaiting()
         {
-            Debug.WriteLine("skippingTurnWaiting");
             try
             {
                 IWebElement element = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(5) > p:nth-child(1) > button:nth-child(1)"));
@@ -508,7 +519,7 @@ namespace Pokemon_Showdown_Bot
             else
             {
                 Dictionary<string, double> strength = new Dictionary<string, double>();
-                foreach (string pokemon in pokemonToNumber.Keys)
+                foreach (string pokemon in mypokemon.Keys)
                 {
                     Dictionary<string, string>[] damages = calculator.calculate(pokemon, opp, oppitem);
                     Dictionary<string, string> mydamage = damages[0];
@@ -857,8 +868,7 @@ namespace Pokemon_Showdown_Bot
         }
 
         private bool waitingForOpponent()
-        {
-            Debug.WriteLine("waitingForOpponent");
+        {            
             try
             {
                 IWebElement waiting = webDriver.FindElement(By.CssSelector(".controls > p:nth-child(1) > em:nth-child(1)"));

@@ -32,10 +32,19 @@ namespace Pokemon_Showdown_Bot
             {
                 fighter = new FighterwithoutCalculator(config);
             }
-            Thread runThread = new Thread(fighter.start);
 
-            runThread.Start();
+            Thread controlThread = new Thread(delegate() { control(fighter); });
 
+            controlThread.Start();
+
+            fighter.start();
+
+            Debug.WriteLine("Bot stopped!");
+
+        }
+
+        private static void control(IFighter fighter)
+        {
             Debug.WriteLine("Commands are: \n\"stop\": for stopping the bot");
 
             string command = Console.ReadLine();
@@ -58,15 +67,10 @@ namespace Pokemon_Showdown_Bot
                 else
                 {
                     Console.WriteLine("Command not recognized!");
-                }           
+                }
             }
 
             fighter.stop();
-
-            runThread.Join();
-
-            Debug.WriteLine("Bot stopped!");
-
         }
 
     }

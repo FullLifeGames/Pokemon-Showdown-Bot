@@ -9,14 +9,15 @@ namespace Pokemon_Showdown_Bot
     class Debug
     {
 
+        private const bool DEBUG = true;
         private static string lastPrint = "";
 
         public static void WriteLine(string s)
         {
-            if (!s.Equals(lastPrint))
+            if (DEBUG && !s.Equals(lastPrint))
             {
                 lastPrint = s;
-                Console.WriteLine(s);
+                Console.WriteLine("Debug: " + s);
             }
         }
 

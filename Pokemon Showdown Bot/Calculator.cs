@@ -139,8 +139,8 @@ namespace Pokemon_Showdown_Bot
         private void setPokemon(string myPokemonRaw, string opponentsPokemonRaw, string oppitem = null)
         {
 
-            string myPokemon = myPokemonRaw.Replace("-Mega", "").Trim();
-            string opponentsPokemon = opponentsPokemonRaw.Replace("-Mega", "").Trim();
+            string myPokemon = myPokemonRaw.Replace("-Mega", "").Replace("-Resolute", "").Trim();
+            string opponentsPokemon = opponentsPokemonRaw.Replace("-Mega", "").Replace("-Resolute", "").Trim();
 
             if (myPokemon.Contains("-"))
             {
@@ -166,8 +166,7 @@ namespace Pokemon_Showdown_Bot
                     if (result.GetAttribute("innerHTML").Contains("Custom Set"))
                     {
                         result.Click();
-                        break;
-                    
+                        break;                    
                     }
                 }
                 lastLoadedMe = myPokemon;
@@ -187,7 +186,7 @@ namespace Pokemon_Showdown_Bot
                 bool hasOuSet = false;
                 foreach (IWebElement result in oppresults)
                 {
-                    if (result.GetAttribute("innerHTML").Contains("OU"))
+                    if (result.Text.Contains("OU"))
                     {
                         tempresult = result;
                         hasOuSet = true;
@@ -217,15 +216,15 @@ namespace Pokemon_Showdown_Bot
                     oppresults = opponentResults.FindElements(By.TagName("li"));
                     hasOuSet = false;
                     tempresult = null;
-                    int count = 0;
+                    bool skipfirst = true;
                     foreach (IWebElement result in oppresults)
                     {
-                        if (count == 0)
+                        if (skipfirst)
                         {
-                            count++;
+                            skipfirst = false;
                             continue;
                         }
-                        if (result.GetAttribute("innerHTML").Contains("OU"))
+                        if (result.Text.Contains("OU"))
                         {
                             tempresult = result;
                             hasOuSet = true;
