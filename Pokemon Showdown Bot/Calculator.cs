@@ -4,6 +4,7 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace Pokemon_Showdown_Bot
         private List<string> magicBouncePokemon;
         private string lastLoadedMe;
         private string lastLoadedOpp;
+        private List<string> scarfers;
 
         public Calculator(Config config)
         {
@@ -42,7 +44,28 @@ namespace Pokemon_Showdown_Bot
 
             alert.Accept(); //for two buttons, choose the affirmative one
 
+            setScarfers();
+
             this.fighter = fighter;
+        }
+
+        private void setScarfers()
+        {
+            scarfers = new List<string>();
+            foreach (string line in config.team.Split('\n'))
+            {
+                if (line.Contains("Choice Scarf"))
+                {
+                    if (line.Contains("(M") || line.Contains("(F"))
+                    {
+                        scarfers.Add(changeName(line.Substring(0, line.IndexOf("(")).Trim()));
+                    }
+                    else if (line.Contains("@"))
+                    {
+                        scarfers.Add(changeName(line.Substring(0, line.IndexOf("@")).Trim()));
+                    }
+                }
+            }
         }
 
         private void initMagicBouncePokemon()
@@ -137,11 +160,25 @@ namespace Pokemon_Showdown_Bot
         private void excludeIntimidate()
         {
             SelectElement select = new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(6) > div:nth-child(2) > select:nth-child(2)")));
-            string ability = select.SelectedOption.Text;
+            string ability = getSelectedOption(select).Text;
             if (ability == "Intimidate")
             {
                 select.SelectByValue("");
             }
+        }
+
+        private static IWebElement getSelectedOption(SelectElement select)
+        {
+            IWebElement selectedoption = null;
+            Parallel.ForEach(select.Options, (option, state) =>
+            {
+                if (option.Selected)
+                {
+                    selectedoption = option;
+                    state.Break();
+                }
+            });
+            return selectedoption;
         }
 
         private void setPokemon(string myPokemonRaw, string opponentsPokemonRaw, string oppitem = null)
@@ -448,7 +485,7 @@ namespace Pokemon_Showdown_Bot
             setPokemon(me, opp);
 
             SelectElement select = new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(6) > div:nth-child(2) > select:nth-child(2)")));
-            string ability = select.SelectedOption.Text;
+            string ability = getSelectedOption(select).Text;
             bool oppHasMagicBounce = magicBouncePokemon.Contains(opp);
             if (oppHasMagicBounce && !ability.Contains("Mold Breaker"))
             {
@@ -461,13 +498,13 @@ namespace Pokemon_Showdown_Bot
         {
             setPokemon(me, opp);
 
-            string type1 = (new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(8) > select:nth-child(4)")))).SelectedOption.Text;
-            string type2 = (new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(9) > select:nth-child(4)")))).SelectedOption.Text;
-            string type3 = (new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(10) > select:nth-child(4)")))).SelectedOption.Text;
-            string type4 = (new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(11) > select:nth-child(4)")))).SelectedOption.Text;
+            string type1 = getSelectedOption(new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(8) > select:nth-child(4)")))).Text;
+            string type2 = getSelectedOption(new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(9) > select:nth-child(4)")))).Text;
+            string type3 = getSelectedOption(new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(10) > select:nth-child(4)")))).Text;
+            string type4 = getSelectedOption(new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(11) > select:nth-child(4)")))).Text;
 
-            string opptype1 = (new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(4) > div:nth-child(1) > select:nth-child(2)")))).SelectedOption.Text;
-            string opptype2 = (new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(4) > div:nth-child(1) > select:nth-child(3)")))).SelectedOption.Text;
+            string opptype1 = getSelectedOption(new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(4) > div:nth-child(1) > select:nth-child(2)")))).Text;
+            string opptype2 = getSelectedOption(new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(4) > div:nth-child(1) > select:nth-child(3)")))).Text;
 
             return new string[] { type1, type2, type3, type4, opptype1, opptype2 };
         }
@@ -479,13 +516,9 @@ namespace Pokemon_Showdown_Bot
             int mySpeed = int.Parse(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(5) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(8) > td:nth-child(6) > span:nth-child(1)")).Text);
             int oppSpeed = int.Parse(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(5) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(8) > td:nth-child(6) > span:nth-child(1)")).Text);
 
-            if ((new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(6) > div:nth-child(3) > select:nth-child(2)")))).SelectedOption.Text == "Choice Scarf")
+            if (scarfers.Contains(changeName(me)))
             {
                 mySpeed = (int)(mySpeed * 1.5);
-            }
-            if ((new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(6) > div:nth-child(3) > select:nth-child(2)")))).SelectedOption.Text == "Choice Scarf")
-            {
-                oppSpeed = (int)(oppSpeed * 1.5);
             }
 
             return new int[] { mySpeed, oppSpeed };

@@ -22,7 +22,7 @@ namespace Pokemon_Showdown_Bot
         private IWebDriver webDriver;
         private Config config;
         private Calculator calculator;
-        private const double MAX_DAMAGE_SWITCH_CONST = 20;
+        private const double MAX_DAMAGE_SWITCH_CONST = 30;
         private bool running = true;
         private ConcurrentQueue<string> messageQueue;
         #endregion
@@ -431,12 +431,13 @@ namespace Pokemon_Showdown_Bot
 
         //TODO Überarbeiten mit Calculator Pick
         private void pickPokemonifDefeated()
-        {
+        {           
             try
             {
                 IWebElement whatDo = webDriver.FindElement(By.CssSelector(".whatdo"));
                 if (whatDo.Text.Contains("Switch"))
                 {
+                    Debug.WriteLine("pickPokemonifDefeated");
                     Random r = new Random();
                     bool exception = true;
                     List<int> bestPokemon = getBestPossiblePokemonForSwitch();
@@ -726,6 +727,10 @@ namespace Pokemon_Showdown_Bot
                 }                
                 foreach (Move m in movesList)
                 {
+                    if (m.moveName.Contains("HP"))
+                    {
+                        m.moveName = "Hidden Power";
+                    }
                     if (innerHtml.Contains(m.moveName))
                     {
                         if (maxdamage < m.maxDamage)
