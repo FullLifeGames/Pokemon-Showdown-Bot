@@ -479,7 +479,6 @@ namespace Pokemon_Showdown_Bot
             }
         }
 
-        //TODO Überarbeiten mit Calculator Pick, Pokemon was schneller ist und Pokemon was am meisten Schaden macht
         private List<int> getBestPossiblePokemonForSwitch()
         {
             string oppsearchtext = null;
@@ -692,11 +691,11 @@ namespace Pokemon_Showdown_Bot
             Dictionary<string, string>[] damages = calculator.calculate(me, opp, oppitem);
             Dictionary<string, string> mydamage = damages[0];
             Dictionary<string, string> oppdamage = damages[1];
-            String[] types = calculator.getMoveTypeAndOpponentsType(me, opp);
+      //    String[] types = calculator.getMoveTypeAndOpponentsType(me, opp);
             IWebElement allMoves = webDriver.FindElement(By.CssSelector(".movemenu"));
             ReadOnlyCollection<IWebElement> moves = allMoves.FindElements(By.Name("chooseMove"));
             bool canStealthRock = calculator.canStealthRock(me, opp);
-            
+
             List<Move> movesList = new List<Move>();
             foreach (KeyValuePair<string, string> damage in mydamage)
             {
@@ -713,20 +712,21 @@ namespace Pokemon_Showdown_Bot
             IWebElement selectedMove = null;
             foreach (IWebElement move in moves)
             {
-                if (!rocksSet && canStealthRock && move.GetAttribute("innerHTML").Contains("Stealth Rock"))
+                string innerHtml = move.GetAttribute("innerHTML");
+                if (!rocksSet && canStealthRock && innerHtml.Contains("Stealth Rock"))
                 {
                     maxdamage = 21;
                     selectedMove = move;
                     rocksSet = true;
                     break;
                 }
-                else if (move.GetAttribute("innerHTML").Contains("Stealth Rock"))
+                else if (innerHtml.Contains("Stealth Rock"))
                 {
                     continue;
                 }                
                 foreach (Move m in movesList)
                 {
-                    if (move.GetAttribute("innerHTML").Contains(m.moveName))
+                    if (innerHtml.Contains(m.moveName))
                     {
                         if (maxdamage < m.maxDamage)
                         {
@@ -734,6 +734,7 @@ namespace Pokemon_Showdown_Bot
                             maxdamage = m.maxDamage;
                             mindamage = m.minDamage;
                         }
+                        break;
                     }
                 }
             }

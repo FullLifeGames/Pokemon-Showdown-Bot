@@ -74,21 +74,25 @@ namespace Pokemon_Showdown_Bot
             IWebElement damage4 = calculator.FindElement(By.Id("resultDamageL4"));
 
             Dictionary<string, string> mydamage = new Dictionary<string, string>();
-            if (move1.Text != "(No Move)")
+            string move1Text = move1.Text;
+            if (move1Text != "(No Move)")
             {
-                mydamage.Add(move1.Text, damage1.Text.Replace(".", ","));
+                mydamage.Add(move1Text, damage1.Text.Replace(".", ","));
             }
-            if (move2.Text != "(No Move)")
+            string move2Text = move2.Text;
+            if (move2Text != "(No Move)")
             {
-                mydamage.Add(move2.Text, damage2.Text.Replace(".", ","));
+                mydamage.Add(move2Text, damage2.Text.Replace(".", ","));
             }
-            if (move3.Text != "(No Move)")
+            string move3Text = move3.Text;
+            if (move3Text != "(No Move)")
             {
-                mydamage.Add(move3.Text, damage3.Text.Replace(".", ","));
+                mydamage.Add(move3Text, damage3.Text.Replace(".", ","));
             }
-            if (move4.Text != "(No Move)")
+            string move4Text = move4.Text;
+            if (move4Text != "(No Move)")
             {
-                mydamage.Add(move4.Text, damage4.Text.Replace(".", ","));
+                mydamage.Add(move4Text, damage4.Text.Replace(".", ","));
             }
 
             IWebElement oppmove1 = calculator.FindElement(By.CssSelector("div.move-result-subgroup:nth-child(2) > div:nth-child(2) > label:nth-child(2)"));
@@ -104,21 +108,25 @@ namespace Pokemon_Showdown_Bot
             IWebElement oppdamage4 = calculator.FindElement(By.Id("resultDamageR4"));
 
             Dictionary<string, string> oppdamage = new Dictionary<string, string>();
-            if (oppmove1.Text != "(No Move)")
+            string oppmove1Text = oppmove1.Text;
+            if (oppmove1Text != "(No Move)")
             {
-                oppdamage.Add(oppmove1.Text, oppdamage1.Text.Replace(".",","));
+                oppdamage.Add(oppmove1Text, oppdamage1.Text.Replace(".", ","));
             }
-            if (oppmove2.Text != "(No Move)")
+            string oppmove2Text = oppmove2.Text;
+            if (oppmove2Text != "(No Move)")
             {
-                oppdamage.Add(oppmove2.Text, oppdamage2.Text.Replace(".", ","));
+                oppdamage.Add(oppmove2Text, oppdamage2.Text.Replace(".", ","));
             }
-            if (oppmove3.Text != "(No Move)")
+            string oppmove3Text = oppmove3.Text;
+            if (oppmove3Text != "(No Move)")
             {
-                oppdamage.Add(oppmove3.Text, oppdamage3.Text.Replace(".", ","));
+                oppdamage.Add(oppmove3Text, oppdamage3.Text.Replace(".", ","));
             }
-            if (oppmove4.Text != "(No Move)")
+            string oppmove4Text = oppmove4.Text;
+            if (oppmove4Text != "(No Move)")
             {
-                oppdamage.Add(oppmove4.Text, oppdamage4.Text.Replace(".", ","));
+                oppdamage.Add(oppmove4Text, oppdamage4.Text.Replace(".", ","));
             }
 
             excludeIntimidate();
@@ -139,17 +147,11 @@ namespace Pokemon_Showdown_Bot
         private void setPokemon(string myPokemonRaw, string opponentsPokemonRaw, string oppitem = null)
         {
 
-            string myPokemon = myPokemonRaw.Replace("-Mega", "").Replace("-Resolute", "").Trim();
-            string opponentsPokemon = opponentsPokemonRaw.Replace("-Mega", "").Replace("-Resolute", "").Trim();
+            string myPokemon = myPokemonRaw.Replace("-Resolute", "").Trim();
+            string opponentsPokemon = opponentsPokemonRaw.Replace("-Resolute", "").Trim();
 
-            if (myPokemon.Contains("-"))
-            {
-                myPokemon = myPokemon.Substring(0, myPokemon.IndexOf("-") + 2);
-            }
-            if (opponentsPokemon.Contains("-"))
-            {
-                opponentsPokemon = opponentsPokemon.Substring(0, opponentsPokemon.IndexOf("-") + 2);
-            }
+            myPokemon = changeName(myPokemon);
+            opponentsPokemon = changeName(opponentsPokemon);
 
             if (lastLoadedMe != myPokemon)
             {
@@ -176,16 +178,21 @@ namespace Pokemon_Showdown_Bot
             {
                 IWebElement opponentControl = calculator.FindElement(By.CssSelector("#s2id_autogen3 > a:nth-child(1)"));
                 opponentControl.Click();
-
                 IWebElement opponentText = calculator.FindElement(By.CssSelector("#select2-drop > div:nth-child(1) > input:nth-child(1)"));
-                opponentText.SendKeys("Mega " + opponentsPokemon.Replace("-", " "));
-                bool hasMega = false;
+                opponentText.SendKeys(opponentsPokemon);
+
                 IWebElement opponentResults = calculator.FindElement(By.CssSelector("#select2-drop > ul:nth-child(2)"));
                 ReadOnlyCollection<IWebElement> oppresults = opponentResults.FindElements(By.TagName("li"));
-                IWebElement tempresult = null;
                 bool hasOuSet = false;
+                IWebElement tempresult = null;
+                bool skipfirst = true;
                 foreach (IWebElement result in oppresults)
                 {
+                    if (skipfirst)
+                    {
+                        skipfirst = false;
+                        continue;
+                    }
                     if (result.Text.Contains("OU"))
                     {
                         tempresult = result;
@@ -200,50 +207,13 @@ namespace Pokemon_Showdown_Bot
                         }
                     }
                 }
-                if (opponentsPokemonRaw.Contains("-Mega") && tempresult != null)
+                if (tempresult != null)
                 {
-                    hasMega = true;
                     tempresult.Click();
                 }
-                if (!hasMega)
-                {
-                    opponentControl = calculator.FindElement(By.CssSelector("#s2id_autogen3 > a:nth-child(1)"));
-                    opponentControl.Click();
-                    opponentControl.Click();
-                    opponentText.SendKeys(opponentsPokemon);
-
-                    opponentResults = calculator.FindElement(By.CssSelector("#select2-drop > ul:nth-child(2)"));
-                    oppresults = opponentResults.FindElements(By.TagName("li"));
-                    hasOuSet = false;
-                    tempresult = null;
-                    bool skipfirst = true;
-                    foreach (IWebElement result in oppresults)
-                    {
-                        if (skipfirst)
-                        {
-                            skipfirst = false;
-                            continue;
-                        }
-                        if (result.Text.Contains("OU"))
-                        {
-                            tempresult = result;
-                            hasOuSet = true;
-                            break;
-                        }
-                        else
-                        {
-                            if (!hasOuSet && tempresult == null)
-                            {
-                                tempresult = result;
-                            }
-                        }
-                    }
-                    if (tempresult != null)
-                    {
-                        tempresult.Click();
-                    }
-                }
                 lastLoadedOpp = opponentsPokemon;
+
+                excludeIntimidate();
 
                 if (oppitem != null)
                 {
@@ -251,6 +221,226 @@ namespace Pokemon_Showdown_Bot
                     select.SelectByValue(oppitem.Trim());
                 }
             }
+        }
+
+        private string changeName(string poke)
+        {
+            switch (poke)
+            {
+                case "Houndoom-Mega":
+                    poke = "Mega Houndoom";
+                    break;
+                case "Venusaur-Mega":
+                    poke = "Mega Venusaur";
+                    break;
+                case "Blastoise-Mega":
+                    poke = "Mega Blastoise";
+                    break;
+                case "Alakazam-Mega":
+                    poke = "Mega Alakazam";
+                    break;
+                case "Gengar-Mega":
+                    poke = "Mega Gengar";
+                    break;
+                case "Kangaskhan-Mega":
+                    poke = "Mega Kangaskhan";
+                    break;
+                case "Pinsir-Mega":
+                    poke = "Mega Pinsir";
+                    break;
+                case "Gyarados-Mega":
+                    poke = "Mega Gyarados";
+                    break;
+                case "Aerodactyl-Mega":
+                    poke = "Mega Aerodactyl";
+                    break;
+                case "Ampharos-Mega":
+                    poke = "Mega Ampharos";
+                    break;
+                case "Scizor-Mega":
+                    poke = "Mega Scizor";
+                    break;
+                case "Heracross-Mega":
+                    poke = "Mega Heracross";
+                    break;
+                case "Tyranitar-Mega":
+                    poke = "Mega Tyranitar";
+                    break;
+                case "Blaziken-Mega":
+                    poke = "Mega Blaziken";
+                    break;
+                case "Gardevoir-Mega":
+                    poke = "Mega Gardevoir";
+                    break;
+                case "Mawile-Mega":
+                    poke = "Mega Mawile";
+                    break;
+                case "Aggron-Mega":
+                    poke = "Mega Aggron";
+                    break;
+                case "Medicham-Mega":
+                    poke = "Mega Medicham";
+                    break;
+                case "Manectric-Mega":
+                    poke = "Mega Manectric";
+                    break;
+                case "Banette-Mega":
+                    poke = "Mega Banette";
+                    break;
+                case "Absol-Mega":
+                    poke = "Mega Absol";
+                    break;
+                case "Garchomp-Mega":
+                    poke = "Mega Garchomp";
+                    break;
+                case "Lucario-Mega":
+                    poke = "Mega Lucario";
+                    break;
+                case "Beedrill-Mega":
+                    poke = "Mega Beedrill";
+                    break;
+                case "Pidgeot-Mega":
+                    poke = "Mega Pidgeot";
+                    break;
+                case "Slowbro-Mega":
+                    poke = "Mega Slowbro";
+                    break;
+                case "Steelix-Mega":
+                    poke = "Mega Steelix";
+                    break;
+                case "Sceptile-Mega":
+                    poke = "Mega Sceptile";
+                    break;
+                case "Swampert-Mega":
+                    poke = "Mega Swampert";
+                    break;
+                case "Sableye-Mega":
+                    poke = "Mega Sableye";
+                    break;
+                case "Sharpedo-Mega":
+                    poke = "Mega Sharpedo";
+                    break;
+                case "Camerupt-Mega":
+                    poke = "Mega Camerupt";
+                    break;
+                case "Altaria-Mega":
+                    poke = "Mega Altaria";
+                    break;
+                case "Salamence-Mega":
+                    poke = "Mega Salamence";
+                    break;
+                case "Metagross-Mega":
+                    poke = "Mega Metagross";
+                    break;
+                case "Latias-Mega":
+                    poke = "Mega Latias";
+                    break;
+                case "Latios-Mega":
+                    poke = "Mega Latios";
+                    break;
+                case "Rayquaza-Mega":
+                    poke = "Mega Rayquaza";
+                    break;
+                case "Lopunny-Mega":
+                    poke = "Mega Lopunny";
+                    break;
+                case "Gallade-Mega":
+                    poke = "Mega Gallade";
+                    break;
+                case "Audino-Mega":
+                    poke = "Mega Audino";
+                    break;
+                case "Diancie-Mega":
+                    poke = "Mega Diancie";
+                    break;
+                case "Charizard-Mega-X":
+                    poke = "Mega Charizard X";
+                    break;
+                case "Charizard-Mega-Y":
+                    poke = "Mega Charizard Y";
+                    break;
+                case "Mewtwo-Mega-X":
+                    poke = "Mega Mewtwo X";
+                    break;
+                case "Mewtwo-Mega-Y":
+                    poke = "Mega Mewtwo Y";
+                    break;
+                case "Groudon-Primal":
+                    poke = "Primal Groudon";
+                    break;
+                case "Kyogre-Primal":
+                    poke = "Primal Kyogre";
+                    break;
+                case "Rotom-Fan":
+                    poke = "Rotom-S";
+                    break;
+                case "Rotom-Mow":
+                    poke = "Rotom-C";
+                    break;
+                case "Rotom-Frost":
+                    poke = "Rotom-F";
+                    break;
+                case "Rotom-Wash":
+                    poke = "Rotom-W";
+                    break;
+                case "Rotom-Heat":
+                    poke = "Rotom-H";
+                    break;
+                case "Meowstic-F":
+                    poke = "Meowstic";
+                    break;
+                case "Kyurem-Black":
+                    poke = "Kyurem-B";
+                    break;
+                case "Kyurem-White":
+                    poke = "Kyurem-W";
+                    break;
+                case "Landorus-Therian":
+                    poke = "Landorus-T";
+                    break;
+                case "Tornadus-Therian":
+                    poke = "Tornadus-T";
+                    break;
+                case "Thundurus-Therian":
+                    poke = "Thundurus-T";
+                    break;
+                case "Giratina-Origin":
+                    poke = "Giratina-O";
+                    break;
+                case "Gourgeist":
+                    poke = "Gourgeist-Average";
+                    break;
+                case "Shaymin-Sky":
+                    poke = "Shaymin-S";
+                    break;
+                case "Wormadam-Sandy":
+                    poke = "Wormadam-G";
+                    break;
+                case "Wormadam-Trash":
+                    poke = "Wormadam-S";
+                    break;
+                case "Deoxys-Attack":
+                    poke = "Deoxys-A";
+                    break;
+                case "Deoxys-Defense":
+                    poke = "Deoxys-D";
+                    break;
+                case "Deoxys-Speed":
+                    poke = "Deoxys-S";
+                    break;
+                case "Aegislash":
+                    poke = "Aegislash-Blade";
+                    break;
+                case "Pikachu-Belle":
+                case "Pikachu-Cosplay":
+                case "Pikachu-Libre":
+                case "Pikachu-PhD":
+                case "Pikachu-Pop-Star":
+                case "Pikachu-Rock-Star":
+                    poke = "Pikachu";
+                    break;
+            }
+            return poke;
         }        
 
         public bool canStealthRock(string me, string opp)
