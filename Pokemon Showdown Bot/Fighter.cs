@@ -10,6 +10,7 @@ using OpenQA.Selenium;
 using System.Collections.ObjectModel;
 using OpenQA.Selenium.Interactions;
 using System.Collections.Concurrent;
+using OpenQA.Selenium.Chrome;
 
 namespace Pokemon_Showdown_Bot
 {
@@ -37,7 +38,8 @@ namespace Pokemon_Showdown_Bot
         {
             setTypeChart();
             setTeam();
-            webDriver = new FirefoxDriver();
+            //webDriver = new FirefoxDriver();
+            webDriver = new ChromeDriver(@"D:\Programming\Pokemon Showdown Bot");
             init();
             while (running)
             {
@@ -215,7 +217,6 @@ namespace Pokemon_Showdown_Bot
             return nextbool;
         }
 
-        //TODO Not tested yet
         private void writeText()
         {
             while (messageQueue.Count != 0)
@@ -225,7 +226,7 @@ namespace Pokemon_Showdown_Bot
                 {
                     Thread.Sleep(10);
                 }
-                webDriver.FindElement(By.CssSelector(".battle-log-add > form:nth-child(1) > textarea:nth-child(3)")).SendKeys(s + (char)13);
+                webDriver.FindElement(By.CssSelector(".battle-log-add > form:nth-child(1) > textarea:nth-child(3)")).SendKeys(s + (char) 10 + (char) 13);
             }
         }
 

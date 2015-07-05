@@ -1,4 +1,5 @@
 ﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
 using OpenQA.Selenium.Support.UI;
 using System;
@@ -31,7 +32,8 @@ namespace Pokemon_Showdown_Bot
         {
             initMagicBouncePokemon();
 
-            calculator = new FirefoxDriver();
+          //  calculator = new FirefoxDriver();
+            calculator = new ChromeDriver(@"D:\Programming\Pokemon Showdown Bot");
             calculator.Navigate().GoToUrl("http://fsibapt.github.io/");
             
             IWebElement teamimport = calculator.FindElement(By.CssSelector(".import-team-text"));
