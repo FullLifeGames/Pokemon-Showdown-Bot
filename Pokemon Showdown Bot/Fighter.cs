@@ -716,7 +716,7 @@ namespace Pokemon_Showdown_Bot
                 string innerHtml = move.GetAttribute("innerHTML");
                 if (!rocksSet && canStealthRock && innerHtml.Contains("Stealth Rock"))
                 {
-                    maxdamage = 21;
+                    maxdamage = MAX_DAMAGE_SWITCH_CONST + 1;
                     selectedMove = move;
                     rocksSet = true;
                     break;

@@ -31,7 +31,7 @@ namespace Pokemon_Showdown_Bot
         {
             initMagicBouncePokemon();
 
-            calculator = new FirefoxDriver(new FirefoxBinary("C:\\Program Files (x86)\\Mozilla Firefox\\Firefox.exe"), new FirefoxProfile());
+            calculator = new FirefoxDriver();
             calculator.Navigate().GoToUrl("http://fsibapt.github.io/");
             
             IWebElement teamimport = calculator.FindElement(By.CssSelector(".import-team-text"));
