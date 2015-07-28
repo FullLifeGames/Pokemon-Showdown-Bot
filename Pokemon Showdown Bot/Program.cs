@@ -16,6 +16,8 @@ namespace Pokemon_Showdown_Bot
     class Program
     {
 
+        public static string CHROMEDRIVER_PATH = @"C:\Ausbildung\Programming\Pokemon-Showdown-Bot-master";
+
         static void Main(string[] args)
         {
 
@@ -47,7 +49,7 @@ namespace Pokemon_Showdown_Bot
         {
             Debug.WriteLine("Commands are: \n\"stop\": for stopping the bot");
 
-            string command = Console.ReadLine();
+            string command = "";
 
             while (command != "stop")
             {

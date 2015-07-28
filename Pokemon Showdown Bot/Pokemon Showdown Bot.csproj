@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Boost.cs" />
     <Compile Include="Calculator.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Debug.cs" />

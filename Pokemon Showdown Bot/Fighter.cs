@@ -23,7 +23,7 @@ namespace Pokemon_Showdown_Bot
         private IWebDriver webDriver;
         private Config config;
         private Calculator calculator;
-        private const double MAX_DAMAGE_SWITCH_CONST = 30;
+        private const double MAX_DAMAGE_SWITCH_CONST = 32;
         private bool running = true;
         private ConcurrentQueue<string> messageQueue;
         #endregion
@@ -39,7 +39,7 @@ namespace Pokemon_Showdown_Bot
             setTypeChart();
             setTeam();
             //webDriver = new FirefoxDriver();
-            webDriver = new ChromeDriver(@"D:\Programming\Pokemon Showdown Bot");
+            webDriver = new ChromeDriver(Program.CHROMEDRIVER_PATH);
             init();
             while (running)
             {
@@ -133,6 +133,8 @@ namespace Pokemon_Showdown_Bot
 
             IJavaScriptExecutor js = webDriver as IJavaScriptExecutor;
             js.ExecuteScript("window.app.tryJoinRoom(\"Pokefans\");");
+
+            Thread.Sleep(1000);
         }
 
         private bool findABattle()
@@ -226,7 +228,7 @@ namespace Pokemon_Showdown_Bot
                 {
                     Thread.Sleep(10);
                 }
-                webDriver.FindElement(By.CssSelector(".battle-log-add > form:nth-child(1) > textarea:nth-child(3)")).SendKeys(s + (char) 10 + (char) 13);
+                webDriver.FindElement(By.CssSelector(".battle-log-add > form:nth-child(1) > textarea:nth-child(3)")).SendKeys(s + Keys.Enter);
             }
         }
 
@@ -430,7 +432,6 @@ namespace Pokemon_Showdown_Bot
             { }
         }
 
-        //TODO Überarbeiten mit Calculator Pick
         private void pickPokemonifDefeated()
         {           
             try
@@ -470,7 +471,7 @@ namespace Pokemon_Showdown_Bot
                         }
                         catch (Exception)
                         {
-                            exception = true;
+                            exception = false;
                         }
                     }
                 }
@@ -487,12 +488,14 @@ namespace Pokemon_Showdown_Bot
             string opp = null;
             double opphealth = -1;
             string oppitem = null;
+            List<Boost> oppboosts = null;
             try
             {
                 oppsearchtext = getOpponentsSearchText();
                 opp = getName(oppsearchtext);
                 opphealth = getHealth(oppsearchtext);
                 oppitem = getItem(oppsearchtext);
+                oppboosts = getOppBoosts();
             }
             catch (Exception)
             {
@@ -522,7 +525,7 @@ namespace Pokemon_Showdown_Bot
                 Dictionary<string, double> strength = new Dictionary<string, double>();
                 foreach (string pokemon in mypokemon.Keys)
                 {
-                    Dictionary<string, string>[] damages = calculator.calculate(pokemon, opp, oppitem);
+                    Dictionary<string, string>[] damages = calculator.calculate(pokemon, opp, oppitem, null, oppboosts);
                     Dictionary<string, string> mydamage = damages[0];
                     Dictionary<string, string> oppdamage = damages[1];
                     int[] speedStats = calculator.getSpeedStats(pokemon, opp);
@@ -661,15 +664,17 @@ namespace Pokemon_Showdown_Bot
         {
             try
             {
+                string mysearchtext = getMySearchText();
+                string me = getName(mysearchtext);
+                List<Boost> myboosts = getMyBoosts();
+                
                 string oppsearchtext = getOpponentsSearchText();
                 string opp = getName(oppsearchtext);
                 double opphealth = getHealth(oppsearchtext);
                 string oppitem = getItem(oppsearchtext);
+                List<Boost> oppboosts = getOppBoosts();
 
-                string mysearchtext = getMySearchText();
-                string me = getName(mysearchtext);
-
-                Move move = calcBestMove(me, opp, oppitem);                     // Wenn der Mittelwert von min und max damage nicht killt => wechsel
+                Move move = calcBestMove(me, opp, oppitem, myboosts, oppboosts);                     // Wenn der Mittelwert von min und max damage nicht killt => wechsel
                 if (move.maxDamage < MAX_DAMAGE_SWITCH_CONST && ((opphealth - mittelwert(move.maxDamage, move.minDamage)) > 0))
                 {
                     if (!tryToSwitch())
@@ -688,9 +693,43 @@ namespace Pokemon_Showdown_Bot
             }
         }
 
-        private Move calcBestMove(string me, string opp, string oppitem)
+        private List<Boost> getOppBoosts()
         {
-            Dictionary<string, string>[] damages = calculator.calculate(me, opp, oppitem);
+            IWebElement status = webDriver.FindElement(By.CssSelector("div.statbar:nth-child(1)")).FindElement(By.ClassName("status"));
+            return getBoosts(status);
+        }
+
+        private List<Boost> getMyBoosts()
+        {
+            IWebElement status = webDriver.FindElement(By.CssSelector("div.statbar:nth-child(2)")).FindElement(By.ClassName("status"));
+            return getBoosts(status);
+        }
+
+        private static List<Boost> getBoosts(IWebElement status)
+        {
+            ReadOnlyCollection<IWebElement> good = status.FindElements(By.ClassName("good"));
+            ReadOnlyCollection<IWebElement> bad = status.FindElements(By.ClassName("bad"));
+            List<Boost> boosts = new List<Boost>();
+            foreach (IWebElement goods in good)
+            {
+                Boost boost = new Boost();
+                boost.type = Boost.Type.GOOD;
+                boost.text = goods.Text;
+                boosts.Add(boost);
+            }
+            foreach (IWebElement bads in bad)
+            {
+                Boost boost = new Boost();
+                boost.type = Boost.Type.BAD;
+                boost.text = bads.Text;
+                boosts.Add(boost);
+            }
+            return boosts;
+        }
+
+        private Move calcBestMove(string me, string opp, string oppitem, List<Boost> myboost, List<Boost> oppboost)
+        {
+            Dictionary<string, string>[] damages = calculator.calculate(me, opp, oppitem, myboost, oppboost);
             Dictionary<string, string> mydamage = damages[0];
             Dictionary<string, string> oppdamage = damages[1];
       //    String[] types = calculator.getMoveTypeAndOpponentsType(me, opp);
@@ -975,12 +1014,22 @@ namespace Pokemon_Showdown_Bot
         {
             return (a + b) / 2;
         }
+
         public void stop()
         {
             running = false;
         }
+
         public void addQueue(string message)
         {
+            string[] messages = messageQueue.ToArray();
+            for (int i = 0; i < messages.Length; i++)
+            {
+                if (message == messages[i])
+                {
+                    return;
+                }
+            }
             messageQueue.Enqueue(message);
         }
     }

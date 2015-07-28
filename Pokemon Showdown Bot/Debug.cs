@@ -9,7 +9,7 @@ namespace Pokemon_Showdown_Bot
     class Debug
     {
 
-        private const bool DEBUG = true;
+        public const bool DEBUG = true;
         private static string lastPrint = "";
 
         public static void WriteLine(string s)

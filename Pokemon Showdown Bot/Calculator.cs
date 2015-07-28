@@ -22,6 +22,8 @@ namespace Pokemon_Showdown_Bot
         private string lastLoadedMe;
         private string lastLoadedOpp;
         private List<string> scarfers;
+        private List<Boost> lastMyBoost;
+        private List<Boost> lastOppBoost;
 
         public Calculator(Config config)
         {
@@ -33,7 +35,7 @@ namespace Pokemon_Showdown_Bot
             initMagicBouncePokemon();
 
           //  calculator = new FirefoxDriver();
-            calculator = new ChromeDriver(@"D:\Programming\Pokemon Showdown Bot");
+            calculator = new ChromeDriver(Program.CHROMEDRIVER_PATH);
             calculator.Navigate().GoToUrl("http://fsibapt.github.io/");
             
             IWebElement teamimport = calculator.FindElement(By.CssSelector(".import-team-text"));
@@ -81,10 +83,10 @@ namespace Pokemon_Showdown_Bot
             magicBouncePokemon.Add("Diancie");
         }
 
-        public Dictionary<string,string>[] calculate(string myPokemon, string opponentsPokemon, string oppitem = null)
+        public Dictionary<string, string>[] calculate(string myPokemon, string opponentsPokemon, string oppitem = null, List<Boost> myboost = null, List<Boost> oppboost = null)
         {
 
-            setPokemon(myPokemon, opponentsPokemon, oppitem);
+            setPokemon(myPokemon, opponentsPokemon, oppitem, myboost, oppboost);
 
             IWebElement move1 = calculator.FindElement(By.CssSelector("div.move-result-subgroup:nth-child(1) > div:nth-child(2) > label:nth-child(2)"));
             IWebElement damage1 = calculator.FindElement(By.Id("resultDamageL1"));
@@ -171,6 +173,8 @@ namespace Pokemon_Showdown_Bot
 
         private static IWebElement getSelectedOption(SelectElement select)
         {
+            return select.SelectedOption;
+            /*
             IWebElement selectedoption = null;
             Parallel.ForEach(select.Options, (option, state) =>
             {
@@ -180,10 +184,10 @@ namespace Pokemon_Showdown_Bot
                     state.Break();
                 }
             });
-            return selectedoption;
+            return selectedoption;*/
         }
 
-        private void setPokemon(string myPokemonRaw, string opponentsPokemonRaw, string oppitem = null)
+        private void setPokemon(string myPokemonRaw, string opponentsPokemonRaw, string oppitem = null, List<Boost> myboost = null, List<Boost> oppboost = null)
         {
 
             string myPokemon = myPokemonRaw.Replace("-Resolute", "").Trim();
@@ -192,7 +196,7 @@ namespace Pokemon_Showdown_Bot
             myPokemon = changeName(myPokemon);
             opponentsPokemon = changeName(opponentsPokemon);
 
-            if (lastLoadedMe != myPokemon)
+            if (lastLoadedMe != myPokemon || notEqual(lastMyBoost, myboost))
             {
                 IWebElement myControl = calculator.FindElement(By.CssSelector("#s2id_autogen1 > a:nth-child(1)"));
                 myControl.Click();
@@ -210,10 +214,12 @@ namespace Pokemon_Showdown_Bot
                         break;                    
                     }
                 }
+                setBoosts(1, myboost);
                 lastLoadedMe = myPokemon;
+                lastMyBoost = myboost;
             }
 
-            if (lastLoadedOpp != opponentsPokemon)
+            if (lastLoadedOpp != opponentsPokemon || notEqual(lastOppBoost, oppboost))
             {
                 IWebElement opponentControl = calculator.FindElement(By.CssSelector("#s2id_autogen3 > a:nth-child(1)"));
                 opponentControl.Click();
@@ -250,7 +256,9 @@ namespace Pokemon_Showdown_Bot
                 {
                     tempresult.Click();
                 }
+                setBoosts(2, oppboost);
                 lastLoadedOpp = opponentsPokemon;
+                lastOppBoost = oppboost;
 
                 excludeIntimidate();
 
@@ -260,6 +268,69 @@ namespace Pokemon_Showdown_Bot
                     select.SelectByValue(oppitem.Trim());
                 }
             }
+        }
+
+        private void setBoosts(int p, List<Boost> boost)
+        {
+            if (boost == null)
+            {
+                return;
+            }
+            string[] selects = {
+                                    "#p" + p + " > div:nth-child(5) > table > tbody > tr.at > td:nth-child(7) > select",
+                                    "#p" + p + " > div:nth-child(5) > table > tbody > tr.df > td:nth-child(7) > select",
+                                    "#p" + p + " > div:nth-child(5) > table > tbody > tr.sa.gen-specific.g2.g3.g4.g5.g6 > td:nth-child(7) > select",
+                                    "#p" + p + " > div:nth-child(5) > table > tbody > tr.sd.gen-specific.g2.g3.g4.g5.g6 > td:nth-child(7) > select",
+                                    "#p" + p + " > div:nth-child(5) > table > tbody > tr.sp > td:nth-child(7) > select"};
+
+            foreach (Boost boo in boost)
+            {
+                int[] formated = boo.formatBoost();
+                if (formated != null)
+                {
+                    SelectElement select = new SelectElement(calculator.FindElement(By.CssSelector(selects[formated[2]])));
+                    switch ((Boost.Type)formated[0])
+                    {
+                        case Boost.Type.GOOD:
+                            select.SelectByText("+" + (formated[1] + 1));
+                            break;
+                        case Boost.Type.BAD:
+                            select.SelectByText("-" + (formated[1] + 1));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+
+        private bool notEqual(List<Boost> lastBoost, List<Boost> boost)
+        {
+            if (lastBoost == null || boost == null)
+            {
+                return false;
+            }
+            if (lastBoost.Count != boost.Count)
+            {
+                return true;
+            }
+            foreach (Boost boo in boost)
+            {
+                bool contains = false;
+                foreach (Boost check in lastBoost)
+                {
+                    if (check.text == boo.text && check.type == boo.type)
+                    {
+                        contains = true;
+                        break;
+                    }
+                }
+                if (!contains)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private string changeName(string poke)
@@ -522,6 +593,15 @@ namespace Pokemon_Showdown_Bot
             {
                 mySpeed = (int)(mySpeed * 1.5);
             }
+
+            SelectElement myspeedselect = new SelectElement(calculator.FindElement(By.CssSelector("#p1 > div:nth-child(5) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(8) > td:nth-child(7) > select:nth-child(1)")));
+            string myboost = Boost.getBoost(myspeedselect.SelectedOption.Text);
+
+            SelectElement oppspeedselect = new SelectElement(calculator.FindElement(By.CssSelector("#p2 > div:nth-child(5) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(8) > td:nth-child(7) > select:nth-child(1)")));
+            string oppboost = Boost.getBoost(oppspeedselect.SelectedOption.Text);
+
+            mySpeed = (int)(mySpeed * double.Parse(myboost));
+            oppSpeed = (int)(oppSpeed * double.Parse(oppboost));
 
             return new int[] { mySpeed, oppSpeed };
         }
