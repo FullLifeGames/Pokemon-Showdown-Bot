@@ -16,7 +16,7 @@ namespace Pokemon_Showdown_Bot
     class Program
     {
 
-        public static string CHROMEDRIVER_PATH = @"C:\Ausbildung\Programming\Pokemon-Showdown-Bot-master";
+        public static string CHROMEDRIVER_PATH = @"D:\Programming\Pokemon Showdown Bot";
 
         static void Main(string[] args)
         {

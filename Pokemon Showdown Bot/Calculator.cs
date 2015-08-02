@@ -286,7 +286,7 @@ namespace Pokemon_Showdown_Bot
             foreach (Boost boo in boost)
             {
                 int[] formated = boo.formatBoost();
-                if (formated != null)
+                if (formated != null && formated[2] != -1)
                 {
                     SelectElement select = new SelectElement(calculator.FindElement(By.CssSelector(selects[formated[2]])));
                     switch ((Boost.Type)formated[0])
