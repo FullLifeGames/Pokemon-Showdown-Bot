@@ -92,6 +92,8 @@ namespace Pokemon_Showdown_Bot
             IWebElement save = webDriver.FindElement(By.Name("saveImport"));
             save.Click();
 
+            Thread.Sleep(500);
+
             ReadOnlyCollection<IWebElement> selectTier = webDriver.FindElements(By.Name("format"));
             foreach (IWebElement iwe in selectTier)
             {
@@ -110,6 +112,8 @@ namespace Pokemon_Showdown_Bot
                     break;
                 }
             }
+
+            Thread.Sleep(500);
 
             ReadOnlyCollection<IWebElement> home = webDriver.FindElements(By.ClassName("button"));
             foreach (IWebElement iwe in home)
@@ -131,7 +135,7 @@ namespace Pokemon_Showdown_Bot
             submit.Click();
 
             Thread.Sleep(1000);
-            IWebElement pass = webDriver.FindElement(By.CssSelector("input.textbox:nth-child(1)"));
+            IWebElement pass = webDriver.FindElement(By.CssSelector("body > div.ps-overlay > div > form > p:nth-child(4) > label > input"));
             pass.SendKeys(config.password);
 
             login = webDriver.FindElement(By.CssSelector("p.buttonbar:nth-child(5) > button:nth-child(1)"));

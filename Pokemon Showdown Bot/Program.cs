@@ -16,7 +16,7 @@ namespace Pokemon_Showdown_Bot
     class Program
     {
 
-        public static string CHROMEDRIVER_PATH = @"D:\Programming\Pokemon Showdown Bot";
+        public static string CHROMEDRIVER_PATH = @"C:\Users\Benedikt\Documents\GitHub\Pokemon-Showdown-Bot";
 
         static void Main(string[] args)
         {
@@ -26,6 +26,13 @@ namespace Pokemon_Showdown_Bot
             if (config.botMethod == null || config.botMethod == "Fighter")
             {
                 fighter = new Fighter(config);
+                Calculator calculator = new Calculator(config);
+                calculator.init(fighter);
+                fighter.setCalculator(calculator);
+            }
+            else if(config.botMethod == null || config.botMethod == "Staller")
+            {
+                fighter = new Staller(config);
                 Calculator calculator = new Calculator(config);
                 calculator.init(fighter);
                 fighter.setCalculator(calculator);
