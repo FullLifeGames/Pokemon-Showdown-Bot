@@ -39,7 +39,12 @@ namespace Pokemon_Showdown_Bot
             setTypeChart();
             setTeam();
             //webDriver = new FirefoxDriver();
-            webDriver = new ChromeDriver(Program.CHROMEDRIVER_PATH);
+
+            var options = new ChromeOptions();
+            options.AddArgument("ignore-certificate-errors");
+            options.AddArgument("no-sandbox");  
+
+            webDriver = new ChromeDriver(Program.CHROMEDRIVER_PATH, options);
             init();
             while (running)
             {
@@ -67,7 +72,7 @@ namespace Pokemon_Showdown_Bot
             IWebElement teamBuilder = webDriver.FindElement(By.CssSelector("div.menugroup:nth-child(2) > p:nth-child(1) > button:nth-child(1)"));
             teamBuilder.Click();
 
-            IWebElement newTeam = webDriver.FindElement(By.Name("new"));
+            IWebElement newTeam = webDriver.FindElement(By.Name("newTop"));
             newTeam.Click();
 
             IWebElement import = webDriver.FindElement(By.Name("import"));
@@ -90,11 +95,18 @@ namespace Pokemon_Showdown_Bot
             ReadOnlyCollection<IWebElement> selectTier = webDriver.FindElements(By.Name("format"));
             foreach (IWebElement iwe in selectTier)
             {
-                if (iwe.Text.Contains("None"))
+                if (iwe.Text.Contains("Select a format"))
                 {
                     iwe.Click();
-                    iwe.SendKeys("o");
-                    iwe.Click();
+                    ReadOnlyCollection<IWebElement> selectFormat = webDriver.FindElements(By.Name("selectFormat"));
+                    foreach (IWebElement iwe2 in selectFormat)
+                    {
+                        if (iwe2.Text == "OU")
+                        {
+                            iwe2.Click();
+                            break;
+                        }
+                    }
                     break;
                 }
             }
@@ -112,7 +124,7 @@ namespace Pokemon_Showdown_Bot
             IWebElement login = webDriver.FindElement(By.Name("login"));
             login.Click();
 
-            IWebElement username = webDriver.FindElement(By.CssSelector("input.textbox:nth-child(1)"));
+            IWebElement username = webDriver.FindElement(By.CssSelector(".ps-popup > form:nth-child(1) > p:nth-child(1) > label:nth-child(1) > .textbox"));
             username.SendKeys(config.user);
 
             IWebElement submit = webDriver.FindElement(By.CssSelector(".buttonbar > button:nth-child(1)"));
@@ -849,7 +861,11 @@ namespace Pokemon_Showdown_Bot
         private string getMySearchText()
         {
             Actions action = new Actions(webDriver);
-            IWebElement me = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(2)"));
+
+            IWebElement test = webDriver.FindElement(By.CssSelector(".text"));
+            test.Click();
+
+            IWebElement me = webDriver.FindElement(By.CssSelector(".foehint > div:nth-child(4)"));
             action.MoveToElement(me).Perform();
 
             IWebElement tooltip = webDriver.FindElement(By.CssSelector(".tooltip"));
@@ -862,7 +878,7 @@ namespace Pokemon_Showdown_Bot
             IWebElement opponent;
             try
             {
-                opponent = webDriver.FindElement(By.CssSelector("div.ps-room:nth-child(47) > div:nth-child(2) > div:nth-child(1)"));
+                opponent = webDriver.FindElement(By.CssSelector(".foehint > div:nth-child(3)"));
             }
             catch (Exception)
             {

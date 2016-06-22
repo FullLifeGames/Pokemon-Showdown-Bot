@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pokemon_Showdown_Bot
@@ -35,7 +36,12 @@ namespace Pokemon_Showdown_Bot
             initMagicBouncePokemon();
 
           //  calculator = new FirefoxDriver();
-            calculator = new ChromeDriver(Program.CHROMEDRIVER_PATH);
+
+            var options = new ChromeOptions();
+            options.AddArgument("ignore-certificate-errors");  
+            options.AddArgument("no-sandbox");  
+
+            calculator = new ChromeDriver(Program.CHROMEDRIVER_PATH, options);
             calculator.Navigate().GoToUrl("http://fsibapt.github.io/");
             
             IWebElement teamimport = calculator.FindElement(By.CssSelector(".import-team-text"));
@@ -43,6 +49,8 @@ namespace Pokemon_Showdown_Bot
 
             IWebElement teamsave = calculator.FindElement(By.CssSelector(".bs-btn"));
             teamsave.Click();
+
+            Thread.Sleep(500);
 
             IAlert alert = calculator.SwitchTo().Alert();
 
