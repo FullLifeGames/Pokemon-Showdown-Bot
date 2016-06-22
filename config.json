@@ -1,61 +1,59 @@
 {
 	"user":"exampleUser",
 	"password":"examplePassword",
-	"team":"Metagross @ Metagrossite
-Ability: Clear Body
-EVs: 252 Atk / 4 Def / 252 Spe
-Jolly Nature
-- Meteor Mash
-- Zen Headbutt
-- Ice Punch
-- Earthquake
+	"team":"Sableye @ Sablenite  
+Ability: Prankster  
+EVs: 252 HP / 4 Def / 252 SpD  
+Careful Nature  
+- Will-O-Wisp  
+- Recover  
+- Foul Play  
+- Knock Off  
 
-Keldeo @ Leftovers
-Ability: Justified
-EVs: 252 SpA / 4 SpD / 252 Spe
-Timid Nature
-IVs: 0 Atk
-- Icy Wind
-- Hydro Pump
-- Scald
-- Secret Sword
+Jirachi @ Leftovers  
+Ability: Serene Grace  
+EVs: 252 HP / 176 SpD / 80 Spe  
+Careful Nature  
+- Stealth Rock  
+- Iron Head  
+- Wish  
+- Protect  
 
-Thundurus (M) @ Life Orb
-Ability: Prankster
-EVs: 28 HP / 228 SpA / 252 Spe
-Timid Nature
-IVs: 0 Atk / 30 Def
-- Focus Blast
-- Psychic
-- Thunderbolt
-- Hidden Power [Ice]
+Tentacruel @ Black Sludge  
+Ability: Clear Body  
+EVs: 214 HP / 186 SpD / 108 Spe  
+Calm Nature  
+- Haze  
+- Scald  
+- Toxic Spikes  
+- Rapid Spin  
 
-Landorus-Therian (M) @ Choice Scarf
-Ability: Intimidate
-EVs: 252 Atk / 24 Def / 232 Spe
-Jolly Nature
-- Earthquake
-- Stone Edge
-- U-turn
-- Superpower
+Chansey @ Eviolite  
+Ability: Natural Cure  
+EVs: 252 Def / 252 SpD / 4 Spe  
+Impish Nature  
+- Soft-Boiled  
+- Seismic Toss  
+- Aromatherapy  
+- Toxic  
 
-Bisharp (F) @ Life Orb
-Ability: Defiant
-EVs: 252 Atk / 4 Def / 252 Spe
-Jolly Nature
-- Sucker Punch
-- Knock Off
-- Low Kick
-- Iron Head
+Tangrowth @ Leftovers  
+Ability: Regenerator  
+EVs: 252 HP / 4 Def / 252 SpD  
+Sassy Nature  
+- Knock Off  
+- Leech Seed  
+- Giga Drain  
+- Sludge Bomb  
 
-Garchomp (F) @ Focus Sash
-Ability: Rough Skin
-EVs: 4 HP / 252 Atk / 252 Spe
-Jolly Nature
-- Stealth Rock
-- Fire Blast
-- Earthquake
-- Outrage",
-	"leadPokemon":"Garchomp",
-	"botMethod":"Fighter"
+Quagsire @ Leftovers  
+Ability: Unaware  
+EVs: 252 HP / 252 Def / 4 SpD  
+Relaxed Nature  
+- Scald  
+- Earthquake  
+- Recover  
+- Toxic",
+	"leadPokemon":"Sableye",
+	"botMethod":"Staller"
 }

@@ -67,7 +67,7 @@ namespace Pokemon_Showdown_Bot
             IWebElement teamBuilder = webDriver.FindElement(By.CssSelector("div.menugroup:nth-child(2) > p:nth-child(1) > button:nth-child(1)"));
             teamBuilder.Click();
 
-            IWebElement newTeam = webDriver.FindElement(By.Name("new"));
+            IWebElement newTeam = webDriver.FindElement(By.Name("newTop"));
             newTeam.Click();
 
             IWebElement import = webDriver.FindElement(By.Name("import"));
@@ -87,17 +87,28 @@ namespace Pokemon_Showdown_Bot
             IWebElement save = webDriver.FindElement(By.Name("saveImport"));
             save.Click();
 
+            Thread.Sleep(500);
+
             ReadOnlyCollection<IWebElement> selectTier = webDriver.FindElements(By.Name("format"));
             foreach (IWebElement iwe in selectTier)
             {
-                if (iwe.Text.Contains("None"))
+                if (iwe.Text.Contains("Select a format"))
                 {
                     iwe.Click();
-                    iwe.SendKeys("o");
-                    iwe.Click();
+                    ReadOnlyCollection<IWebElement> selectFormat = webDriver.FindElements(By.Name("selectFormat"));
+                    foreach (IWebElement iweFormat in selectFormat)
+                    {
+                        if (iweFormat.Text.ToLower().Contains("ou"))
+                        {
+                            iweFormat.Click();
+                        }
+                        break;
+                    }
                     break;
                 }
             }
+
+            Thread.Sleep(500);
 
             ReadOnlyCollection<IWebElement> home = webDriver.FindElements(By.ClassName("button"));
             foreach (IWebElement iwe in home)
@@ -112,14 +123,14 @@ namespace Pokemon_Showdown_Bot
             IWebElement login = webDriver.FindElement(By.Name("login"));
             login.Click();
 
-            IWebElement username = webDriver.FindElement(By.CssSelector("input.textbox:nth-child(1)"));
+            IWebElement username = webDriver.FindElement(By.CssSelector("body > div.ps-overlay > div > form > p:nth-child(1) > label > input"));
             username.SendKeys(config.user);
 
             IWebElement submit = webDriver.FindElement(By.CssSelector(".buttonbar > button:nth-child(1)"));
             submit.Click();
 
             Thread.Sleep(1000);
-            IWebElement pass = webDriver.FindElement(By.CssSelector("input.textbox:nth-child(1)"));
+            IWebElement pass = webDriver.FindElement(By.CssSelector("body > div.ps-overlay > div > form > p:nth-child(4) > label > input"));
             pass.SendKeys(config.password);
 
             login = webDriver.FindElement(By.CssSelector("p.buttonbar:nth-child(5) > button:nth-child(1)"));
